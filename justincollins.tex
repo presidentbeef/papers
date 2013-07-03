@@ -237,7 +237,7 @@ Local storage is implemented simply as two vectors, one for write/read messages 
 
 Network communication is handled using the $\emptyset$MQ library.
 
-\subsubsection{Tracking Read Messages}
+\subsubsection{Tracking Read Messages}\label{sec:readmessages}
 
     When a messages is stored, it is given a unique identifier [\textit{P}, \textit{M}], where \textit{P} is a globally unique integer identifier for the storing process, and \textit{M} is an integer identifier for the stored message. Each process maintains an integer ID which is incremented for each store. Messages stored from the same process with consecutive store operations will have consecutive \textit{M} values and share the same \textit{P} value.
 
@@ -344,34 +344,52 @@ The experiment coordination application described in the next section was used t
 \centering
 \includegraphics[scale = .50, clip, trim = 10px 240px 10px 250px]{figures/experiment_arch.pdf}
 \caption{Coordinator Architecture}
-\label{fig:architecture}
+\label{fig:coordarchitecture}
 \end{figure}
 
 To ease the process of repeatedly setting up experiments, we developed a framework written with the proposed paradigm which is responsible for coordinating experiments. The application handles running real applications on multiple hosts, executing the network emulator, and gathering resulting output into a single location.
 
-The architecture of the framework is illustrated in Figure [?]. For simplicity, the coordinator resides on the same host as the network emulator. The coordinator sends out commands to clients which reside on each host. The clients are responsible for executing programs on their local host and sending resulting output to the central coordinator.
+The architecture of the framework is illustrated in Figure \cite{fig:coordarchitecture}. For simplicity, the coordinator resides on the same host as the network emulator. The coordinator sends out commands to clients which reside on each host. The clients are responsible for executing programs on their local host and sending resulting output to the central coordinator.
 
 Figure[?] shows the steps the coordinator, clients, and applications use to conduct an experiment. The coordinator first writes a job containing the command to execute and any relevant options. Each client reads the job, starts the command, then stores a confirmation once the application has started and is ready to begin. When the coordinator has taken a confirmation from each host, it starts the network emulator. Then it writes a “go” message. Upon reading the go message, each client signals the application to begin.
 
 As the application runs, the client gathers output and stores it. When the application finishes, it signals that it is done and then awaits a kill signal from the client. The client also stores a “done” signal. When the coordinator has taken a “done” message from each client, it collects the results and then sends a “kill” message. The clients then kill the applications and the process is ready to start again.
 
-\subsection{Message Overhead}
-
-A cost of interest for any communication paradigm is the message size overhead added for sending and receiving messages.
 
 \subsection{Operation Speed}
 
-To establish a baseline for performance, we measured the time for the \textbf{write}, \textbf{read}, \textbf{store}, and \textbf{take} operations directly on a local message storage and compared the results to the LighTS local tuple space implementation used by LIME.
+To establish a baseline for performance, we measured the time for the \textbf{write}, \textbf{read}, \textbf{store}, and \textbf{take} operations directly on a local message storage and compared the results to the LighTS\cite{lights} local tuple space implementation used by LIME. In these experiments, all messages are first stored, then either read or removed from the local storage. No network communication is involved.
+
+When comparing \textbf{read} and \textbf{rd}, we simulate the new paradigm's feature of only returning unread messages by using an incrementing ID in the tuples and then performing a \textbf{rd} operation for each ID. If we did not do this, LighTS could return the same tuple for each \textbf{rd} operation.
+
+In both LighTS and the new paradigm, messages are stored in what is essentially an array. Since we are not removing any messages from the store, each operation must linearly search the vector and therefore takes O(\textit{nm}) time, where \textit{n} is the length of the message or tuple and \textit{m} is the number of stored messages or tuples. Naturally, operations returning messages near the beginning of the vector are faster, while the slowest operation returns the last message in the vector. In our experiments, this cost did not become apparent until searching 100,000 messages. The average time per operation from 10,000 to 100,000 increased ~9x for LighTS and ~10x for the new paradigm, with total read time taking just under a minute. It is unsurprising the new paradigm is slightly slower, since it must also check that a message is not in the "read" list before returning it.
+
+On the other hand, removing messages is naturally quite fast, since the matching message is always the first message in the store. All \textbf{take}/\textbf{in} operations require less than 8ms to execute on average. The new paradigm is slightly faster here due to differences in how removal is implemented, although speeds converge as the number of operations performed increases. The performance improvement is likely due to runtime optimizations of the JVM rather than any feature of the message stores.
+
+Storing messages is faster than removing them for both implementations. In LighTS there is slightly more constant overhead for adding new tuples, so \textbf{out} operations are a little slower than \textbf{write} and \textbf{store} in the new paradigm.  However, in reality both implementations are plenty fast for typical applications, since storing a message takes less than 10ms on average, and usually less than 4ms.
+
+Overall, the new paradigm performs roughly the same or better than LighTS when performing serial operations.
+
+\subsection{Communication Overhead}
+
+For any communication library or framework, the message cost added by use of the library is an important factor in determining its usefulness. In these experiments, we measure the number of bytes actually sent over the network, divide by the number of messages sent (in this case, 1000) and subtract the 1KB application payload. This provides us with the overhead introduced by the paradigm. We compare the overhead of the new paradigm to canonical implementations of publish/subscribe, RPC, and tuple spaces in figure \ref{fig:overhead}.
+
+Publish/subscribe and RPC have very low overhead and provide a good baseline. In the case of publish/subscribe, the only added information to a publication is the topic. Periodic subscription messages are small and infrequent compared to the number of messages sent. For RPC, there is one initial exchange to find the remote object, then later messages only need the object and method names plus the payload itself.
+
+As in the operation speed experiments, we use the LighTS tuple space implementation. The serialized versions of tuples and tuple templates are very large and must be sent for each request. If a simpler data structure were used, overhead is be expected to be similar to the new paradigm's overhead for \textbf{take}.
+
+For the new paradigm, \textbf{take} and \textbf{read} requests must send a message template, so the size of the request is dependent on how many values the template contains. For \textbf{read} operations, each request must also send information on previously read messages as described in Section \ref{section:readmessages}, which increases as the number of read messages increases.
 
 \subsection{Message Latency}
 
-Figures [?] and [?] show the time between the request for a message and the receipt of a matching message in both static and mobile scenarios. One host writes out 1000 messages with a 1kb payload and the other hosts read messages one at a time.
+Figures [?] and [?] show the latency between a client's request for a message and the receipt of a matching message in the static and mobile scenarios. In these experiments, a single host writes out 1000 messages with a 1KB payload, and the other hosts concurrently read the messages. Tuple spaces and the new paradigm used the \textit{rd}/\textit{read} operations to retrieve the messages one at a time, rather than the bulk retrieval \textbf{rdg} or \textbf{read_all}.
+
+
 
 \subsection{Message Throughput}
 
 Throughput was measured in terms of messages delivered per second. As in the other experiments, 1000 messages with a 1kb payload are output by one host, while the other hosts read the messages individually.
 
-Since our implementation of the paradigm can easily handle concurrent reads from five hosts, the high latency seen in the experiments is the result of the wireless network.
 
 \section{Related Work}
 
