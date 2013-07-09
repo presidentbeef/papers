@@ -8,7 +8,8 @@
 \usepackage{cite}
 \usepackage{verbatim}
 \usepackage{graphicx}
-\usepackage[table]{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
 
 \usepackage{url}
 \urldef{\mailsa}\path|{collins, rajive}@cs.ucla.edu|
@@ -19,12 +20,12 @@
 \mainmatter  % start of an individual contribution
 
 % first the title is needed
-\title{A Quantitative Comparison of Communication Paradigms for MANETs}
+\title{MELON: A Persistent Message-Based Communication Paradigm for MANETs}
 
-\titlerunning{A Quantitative Comparison of Communication Paradigms for MANETs}
+\titlerunning{MELON: A Persistent Message-Based Communication Paradigm for MANETs}
 
 \author{Justin Collins\and Rajive Bagrodia}
-\authorrunning{A Quantitative Comparison of Communication Paradigms for MANETs}
+\authorrunning{MELON: A Persistent Message-Based Communication Paradigm for MANETs}
 % (feature abused for this document to repeat the title also on left hand pages)
 
 % the affiliations are given next
@@ -32,32 +33,56 @@
 Los Angeles, CA\\
 \mailsa }
 
-\toctitle{A Quantitative Comparison of Communication Paradigms for MANETs}
-\tocauthor{Authors' Instructions}
+\toctitle{MELON: A Persistent Message-Based Communication Paradigm for MANETs}
+\tocauthor{Justin Collins and Rajive Bagrodia}
 
 
 \maketitle
 \begin{abstract}
-
+In this paper we introduce MELON, a new communication paradigm tailored to mobile ad hoc networks based on novel interactions with a distributed shared message store. MELON provides read-only messages, per-process tracking of read messages, private messages, and bulk message operations, while addressing the dynamic and challenging environment of MANETs. In addition to introducing the new paradigm, we quantitatively compare MELON to existing paradigms to show its feasibility as the basis for new MANET middleware and applications.
 \end{abstract}
 
 \section{Introduction}
 
-\section{Background}
+While smartphones are quickly becoming ubiquitous, most networked applications continue to use a client-server model instead of forming and communicating through mobile ad hoc networks (MANET). One reason may be the increased challenges of developing a MANET application which must communicate with peers over unreliable shifting network topologies. While communicating over a single-hop wireless network (either a WiFi access point or cellular tower) to a central server is simpler, MANETs are useful when communication is between nearby devices (avoiding data charges, for example) or when there is no network infrastructure, such as in disaster recovery situations. Even less dramatic circumstances such as a buildings or locations without cellular signals can also benefit from MANETs.
 
-Applications which are developed for MANETs must operate in an infrastructureless, unreliable, and dynamic distributed environment. This presents a particular combination of challenges which should be addressed by a development platform. In [Collins 2008] we identify disconnection handling, addressing and discovery, and flexible communication as important features for MANET development.
+Applications which are developed for MANETs must operate in an infrastructureless, unreliable, and dynamic distributed environment. This presents a particular combination of challenges which should be addressed by a development platform. In \cite{mine} we identify disconnection handling, addressing and discovery, and flexible communication as important features for MANET development.
 
 Two of the main features of MANETs are the wireless communication medium and the dynamic network topology. Wireless communication can be impaired by competing broadcasts, physical obstacles, and nodal mobility. When combined with an entirely self-organizing network where nodes may join and leave the network at any time, this environment leads to frequent communication disruptions. In traditional networking libraries, disconnections are treated as exceptional events, often as errors which must be handled by the application. In MANETs, disconnections are so common they should be handling naturally by the programming paradigm.
 
 The dynamicity of MANETs also leads to transience of resources. It is common in distributed programming paradigms to use referential decoupling to refer to resources separately from the physical location of the resources. This also works well in MANETs, since a resource may have physical or logical mobility, and several hosts may offer the same type of resource over time. A programming paradigm for MANETs should incorporate a solution for addressing required resources without tying them to a particular host.
 
-However, before addressing resources an application must discover the resources available. The infrastructureless nature of MANETs precludes the use of centralized architectures for maintaining a directory of resources. It is also unlikely the location of resources will be known prior to joining a network. Discovery mechanisms are needed to find resources and must be implemented in a distributed manner to fit the MANET environment.
+However, before addressing resources an application must discover the resources which are available. The infrastructureless nature of MANETs precludes the use of centralized architectures for maintaining a directory of resources. It is also unlikely the location of resources will be known prior to joining a network. Discovery mechanisms are needed to find resources and must be implemented in a distributed manner to fit the MANET environment.
 
 As the primary purpose of a programming paradigm for MANETs is communication between hosts, a general-purpose paradigm should provide flexible communication: both multicast and unicast communication are common in MANET applications. Given the ubiquity of SMS, instant messaging, and direct messages, the paradigm should also support private unicast communication.
 
 Besides the desired features for application development discussed above, it should also be noted that devices in MANETs are often resource constrained. In particular, smartphones have become essentially ubiquitous in many areas, and have much less power, CPU, memory, and storage space than a typical consumer desktop computer. These constraints may influence the design of paradigms intended to run on these more limited devices.
 
-\section{Proposed Paradigm}
+To alleviate some of the application development challenges posed by MANETs, several approaches to middleware and libraries have been proposed. The majority of these proposals are based on traditional distributed computing paradigms: publish/subscribe, tuple spaces, remote procedure calls, and mobile agents. In this paper, we introduce a new communication paradigm for general purpose MANET applications called MELON\footnote{Message Exchange Language Over the Network} . We show that our proposed approach is feasible by comparing performance of MELON to canonical implementations of traditional paradigms.
+
+\section{MELON Design}
+
+The design of MELON is centered around a distributed shared message store. Each device in the network may host any number of applications which access and contribute to the shared message store. Each application hosts a local message store which may be accessed by any other local or remote application. Applications request messages (which may be stored locally or remotely) based on message templates.
+
+By communicating through a shared message store, the concept of a connection between hosts is eliminated and thus disconnections are no longer an issue. A host suddenly leaving the network does not disrupt an application. Applications do not need to handle a communication operation returning an error or failing due to intermittent network connectivity or physical wireless interference. The application is effectively insulated from these issues by the nature of the paradigm and the semantics of the operations.
+
+Since messages are exchanged through a shared message store, messages are sent and received asynchronously with no need for a persistent connection. This provides temporal decoupling between hosts, since messages can still be delivered even after prolonged disconnections.
+
+Due to the dynamic network topology of MANETs where nodes may move in physical space and join or leave the network at anytime, maintaining any type of logical or overlay network structure becomes challenging, so MELON does not rely on any network structure. Discovery of available messages is performed dynamically for each operation. While this does increase the amount of communication required for each operation, it removes the need for any type of global state and allows the network to change at any time.
+
+MELON also provides spatial decoupling (where the sender and receiver need not be aware of each other) by matching messages based on content, rather than by a host address or location. The messages themselves may physically reside on any host in the network. The sender of a message is not aware of the receivers' identities or even how many receivers might read a message. This frees applications from needing to track remote addresses or contact a directory service in order to find remote resources.
+
+The shared wireless communication medium in MANETs is well-suited to group or multicast communications. MELON supports multicast communication by allowing any number of receivers to read the same message. MELON also provides bulk receives, which allow applications to efficiently receive multiple messages from multiple hosts in a single operation.
+
+Applications often require point-to-point or unicast communication as well. While unicast communication can be accomplished through by storing regular messages in MELON, this communication can easily be disrupted by a process removing a message intended for a different receiver. Additionally, it is possible to eavesdrop on messages unnoticed by reading a message and not removing it. For applications such as instant messaging, it is important to have private unicast communication. In MELON, messages may be directed to a specific receiver when stored to ensure the messages are only taken by the correct recipient.
+
+MELON also includes features uncommon to shared message stores in order to further simplify application development in MANETs. First, messages are returned in first-in first-out order per host. When a host receives a message request, it returns the earliest matching message. In applications where a single host generates the majority of the messages, this eliminates the need to order messages on the receiver side. 
+
+Secondly, MELON provides operations to only read messages which were not previously read by the same process when performing a nondestructive read. This enables an application to read all matching messages currently in the message store, then read only newly-added messages in subsequent operations. It also prevents an application from reading the same message twice.
+
+Lastly, MELON differentiates between messages which are meant to persist and be read by many receivers versus messages intended to be removed from the message store. For example, messages in a news feed would have many readers, but the messages themselves should not be removed. On the other hand, a job queue expects each job to be removed by exactly one worker. MELON provides operations to support both of these scenarios.
+
+\subsection{MELON Operations Overview}
 
 \begin{table}
 \centering
@@ -70,27 +95,23 @@ Destructive retrieval & \textbf{store} & \textbf{take} & \textbf{take\_all} \\ \
 \label{table:opsummary}
 \end{table}
 
-In the proposed communication paradigm, messages are exchanged through a distributed shared message store. The set of six operations used to interact with the message store are summarized in Table \ref{table:opsummary}.
-
-Messages can be copied to the shared message store via a \textbf{store} or \textbf{write} operation. A \textbf{store} operation allows the message to later be removed from the storage space, while messages saved with a \textbf{write} operation cannot be explicitly removed from the storage space, only copied.
+Messages can be copied to the shared message store via a \textbf{store} or \textbf{write} operation. A \textbf{store} operation allows the message to later be removed from the storage space while messages saved with a \textbf{write} operation cannot be explicitly removed from the storage space, only copied.
 
 Messages stored via \textbf{store} may be retrieved by a \textbf{take} operation using a message template which specifies the content of the message to be returned. A \textbf{take} operation will remove a message with matching content from the message store and return it to the requesting process. \textbf{take} operations are atomic: a message may only ever be returned by a single \textbf{take} operation. If multiple matching messages are available, the earliest-stored message is returned.
 
 A \textbf{read} operation will also return a message matching a given template, but does not remove the original message from the shared storage. Any number of processes may read the same message. However, repeated applications of a \textbf{read} operation in the same process will never return the same message. Only messages stored with \textbf{write} will be returned by a \textbf{read} operation.
 
-The basic \textbf{take} and \textbf{read} operations return a single message per invocation. To facilitate the exchange of multiple messages, the proposed paradigm includes the bulk operations \textbf{take\_all} and \textbf{read\_all}. The bulk versions operate the same as the basic operations, except all available matching messages will be returned instead of a single message. For \textbf{read\_all}, only messages which were not previously returned by a \textbf{read} or \textbf{read\_all} in the same process will be returned.
+The basic \textbf{take} and \textbf{read} operations return a single message per invocation. To facilitate the exchange of multiple messages, MELON includes the bulk operations \textbf{take\_all} and \textbf{read\_all}. The bulk versions operate the same as the basic operations, except all available matching messages will be returned instead of a single message. For \textbf{read\_all}, only messages which were not previously returned by a \textbf{read} or \textbf{read\_all} in the same process will be returned.
 
-By default \textbf{take}, \textbf{take\_all}, \textbf{read}, and \textbf{read\_all} will block the process until a matching message is available. The proposed paradigm also provides non-blocking versions of these operations. The non-blocking operations will return a null value if no matching messages can be found.
+By default \textbf{take}, \textbf{take\_all}, \textbf{read}, and \textbf{read\_all} will block the process until a matching message is available. MELON also provides non-blocking versions of these operations. The non-blocking operations will return a null value if no matching messages can be found.
 
 When a message is saved with a \textbf{store} operation, it may optionally be directed to a specific receiver. In a directed message, the identity of a receiver is included in the message as the addressee. Only the addressee may access a directed message through a \textbf{take}.
 
-Due to the limited resources of most devices in a mobile network, storage space in the proposed paradigm is explicitly bounded. Any message may be garbage collected prior to being removed by a take if capacity is reached.
+Due to the limited resources of most devices in a mobile network, storage space in MELON is explicitly bounded. Any message may be garbage collected prior to being removed by a \textbf{take} if capacity is reached.
 
 \subsection{Operation Details}
 
-    Processes in the proposed paradigm communicate by storing messages to a shared storage space and retrieving the messages based on templates.
-
-In this paper, we assume messages consist of an ordered list of typed values, information about the sender, and optionally an addressee. However, nothing in the paradigm itself limits how messages might be constructed (e.g., they could be an unordered tuple with named values instead).
+Processes in MELON communicate by storing messages to a distributed shared message store and retrieving the messages based on templates. In this paper, we assume messages consist of an ordered list of typed values and optionally an addressee. However, nothing in the paradigm itself limits how messages might be constructed (e.g., they could be an unordered tuple with named values instead).
 
 A message template is similar to a message, except it may contain both values and types. For example, a message containing \texttt{[1, "hello"]} could be matched by a template containing \texttt{[1, String]} or \texttt{[Integer, "hello"]} or \texttt{[Integer, String]}. A type will also match any subtypes.
 
@@ -201,47 +222,28 @@ function fetch(category) {
 \label{fig:newsreader}
 \end{table}
 
-    Table \ref{fig:newsreader} demonstrates a use of \textbf{read\_all}. In this example, one or more processes generate news messages containing a news category and headline. To ensure all interested parties can read the news, the server uses \textbf{write} to disallow a reader from removing a news item and preventing other readers from reading it. Any number of processes can consume the news as readers. The \texttt{fetch} method in Table \ref{fig:readprocesses} uses \textbf{read\_all} to return all news items in a given category. Repeated calls to \texttt{fetch} will only return news items that were not already returned in a prior call.
+Table \ref{fig:newsreader} demonstrates a use of \textbf{read\_all}. In this example, one or more processes generate news messages containing a news category and headline. To ensure all interested parties can read the news, the server uses \textbf{write} to disallow a reader from removing a news item and preventing other readers from reading it. Any number of processes can consume the news as readers. The \texttt{fetch} method in Table \ref{fig:readprocesses} uses \textbf{read\_all} to return all news items in a given category. Repeated calls to \texttt{fetch} will only return news items that were not already returned in a prior call.
     
-\subsection{MANET Suitability}
-
-The proposed paradigm provides a basis for creating applications which operate in a mobile ad hoc network. MANETs are dynamic, infrastructureless networks with an unreliable shared communication medium in which both temporary and permanent disconnections are commonplace. A communication paradigm supporting MANET applications must address disconnections and provide distributed communications without reliance on any fixed infrastructure.
-
-One approach to handling disconnections is to hide them from the application entirely. In the proposed paradigm, there is no concept of a connection between hosts. A host suddenly leaving the network does not disrupt an application. Applications do not need to handle a communication operation returning an error or failing due to intermittent network connectivity or interference. The application is effectively insulated from these issues by the nature of the paradigm and the semantics of the operations.
-
-Temporal decoupling is another method by which the proposed paradigm lessens the impact of disconnections. Since messages are exchanged through a persistent storage space, messages are sent and received asynchronously with no need for a persistent connection. Messages can still be delivered even after prolonged disconnections between hosts.
-
-Due to the dynamic network topology of MANETs where nodes may move in physical space and join or leave the network at anytime, maintaining any type of logical or overlay network structure becomes challenging. The lack of infrastructure or fixed nodes in the network precludes centralized solutions to name lookups and tracking of available resources. The proposed paradigm does not rely on any structure in the network. Discovery of available messages is performed dynamically for each operation, which removes the need for a centralized registry of messages and allows the network to change at any time.
-
-The proposed paradigm also provides spatial decoupling (where the sender and receiver need not be aware of each other) by matching messages based on content, rather than by a host address or location. The messages themselves may physically reside on any host in the network, regardless of the original sender. The sender of a message is not aware of the receivers’ identities or even how many receivers might read a message. This frees applications from needing to track remote addresses or contact a name service in order to find remote resources.
-
- The shared wireless communication medium in MANETs is well-suited to group or multicast communications, and a communication paradigm for MANETs should take advantage of this feature. The proposed paradigm allows multicast communication with the write operation, since messages may be read by any number of receivers. To further enforce this mode of communication, messages stored with a write operation can never be removed by a take. This ensures a messages will remain available for any number of receivers to read.
-
-While simply writing a message makes it available for many receivers to read, the proposed paradigm also provides bulk receives, which allow applications to efficiently receive multiple messages from multiple hosts in a single operation.
-
-Applications often require point-to-point or unicast communication as well. While unicast communication can be accomplished with store/take operations in the proposed paradigm, this communication can easily be disrupted processes performing a take operation and receiving a message intended for a specific receiver. Additionally, it is possible to eavesdrop on messages unnoticed with read operations. For applications such as instant messaging, it is important to have private unicast communication. In the proposed paradigm, directed messages are used to ensure the messages are only taken by the correct recipient.
-The proposed paradigm was designed to meet the challenges of dynamic MANET environments by managing disconnections, not relying on a fixed network topology, and providing communication patterns useful to MANET applications.
-    
-\subsection{Implementation}
+\subsection{MELON Implementation}
 
 \begin{figure}
 \centering
-\includegraphics[scale = .50, clip, trim = 10px 280px 10px 250px]{figures/paradigm_arch.pdf}
+\includegraphics[scale = .30, clip, trim = 10px 280px 10px 250px]{figures/paradigm_arch.pdf}
 \caption{Paradigm Architecture}
 \label{fig:architecture}
 \end{figure}
 
-We developed a prototype implementation to validate our design and obtain empirical performance data. The architecture illustrated in Figure \ref{fig:architecture} is split into five parts. The Paradigm API is the only interface exposed to the application. The Paradigm API interacts with the distributed message storage through the Storage API, which provides the same interface for both local and remote storage. The Storage Server proves a network interface to a local storage space and accepts connections made through the Remote Storage stub.
+We developed a prototype implementation of MELON to validate our design and obtain empirical performance data. The architecture illustrated in Figure \ref{fig:architecture} is split into five parts. The MELON API is the only interface exposed to the application and provides the six operations described above. The MELON API interacts with the distributed message storage through the storage API, which provides the same interface for both local and remote storage. The storage server proves a network interface to a local storage space and accepts connections made through the remote storage stub.
 
-Local storage is implemented simply as two vectors, one for write/read messages and the other for store/take messages. For atomic updates, the write/read vector uses a readers/writer lock to allow multiple read operations to access the vector in parallel, but locks the vector for write operations. The store/take vector does not permit parallel operations, since both store and take modify the store. The two vectors may be accessed or modified in parallel with each other.
+Local storage is implemented simply as two dynamic arrays, one for write/read messages and the other for store/take messages. For atomic updates, the write/read array uses a readers/writer lock to allow multiple \textbf{read} operations to access the array in parallel, but locks the array for write operations. The store/take array does not permit concurrent operations, since both \textbf{store} and \textbf{take} modify the store. The two arrays may be accessed and modified independently.
 
-Network communication is handled using the $\emptyset$MQ library.
+Network communication is handled using ZeroMQ\cite{hintjens2013zeromq}, a high performance high level networking library. For the prototype, the network communication was intentionally kept simple. For example, a \textit{rd} request queries remote hosts in a random order and stops when a matching result is returned. While it is possible to improve this using multicast, it would greatly complicate the implementation by requiring the client to handle multiple asynchronous responses, choose between them, request the actual matching message, and then handle failure scenarios if the matching message cannot be returned. Our approach was to trade off potential performance gains for simplicity. 
 
 \subsubsection{Tracking Read Messages}\label{sec:readmessages}
 
     When a messages is stored, it is given a unique identifier [\textit{P}, \textit{M}], where \textit{P} is a globally unique integer identifier for the storing process, and \textit{M} is an integer identifier for the stored message. Each process maintains an integer ID which is incremented for each store. Messages stored from the same process with consecutive store operations will have consecutive \textit{M} values and share the same \textit{P} value.
 
-    In order to prevent read from returning a message more than once in the same process, each process maintains a sparse bit set for each process from which a message has been read. The identifier [\textit{P}, \textit{M}] is condensed into a single unique integer \textit{Q} using the ``elegant pairing function''\cite{szudzikelegant} shown in equation \ref{eq:elegantpairing}. Since the values of \textit{Q} will be consecutive for all consecutive values of $M < P$, it is helpful to set \textit{P} to be higher than the number of expected messages. The value \textit{Q} is then stored in a sparse bit set with a hash table using integer keys and bit field values.
+    In order to prevent read from returning a message more than once in the same process, each process maintains a sparse bit set for each process from which a message has been read. The identifier [\textit{P}, \textit{M}] is condensed into a single unique integer \textit{Q} using the ``elegant pairing function''\cite{szudzikelegant} shown in equation \ref{eq:elegantpairing}. Since the values of \textit{Q} will be consecutive integers for all consecutive values of $M < P$, it is helpful to set \textit{P} to be higher than the number of expected messages. The value \textit{Q} is then stored in a sparse bit set with a hash table using integer keys and bit field values.
 
  \begin{equation}
    f(M,P) = \left\{
@@ -253,21 +255,22 @@ Network communication is handled using the $\emptyset$MQ library.
    \label{eq:elegantpairing}
 \end{equation}
 
-Table \ref{fig:bitset} shows an example of how the information would be stored. In this case, one byte has been used for each bit field and is displayed in binary. The index \textit{i} in the sparse bit set indicates the range stored in the bit set. If \textit{w} is the number of bits for each bit set, then each bit field can store up to \textit{w} values of \textit{n}, where $w \times i \leq n < w \times (i + 1)$. A message with ID \textit{n} will be stored in index $n \div w$ by setting the bit at $n \bmod w$ in the bit field to \texttt{1}.
+The index \textit{i} in the sparse bit set indicates the range stored in the bit set. If \textit{w} is the number of bits for each bit set, then each bit field can store up to \textit{w} values of \textit{n}, where $w \times i \leq n < w \times (i + 1)$. A message with ID \textit{n} will be stored in index $n \div w$ by setting the bit at $n \bmod w$ in the bit field to \texttt{1}.
 
 If the index value is of size \textit{l} bits and the bit field contains \textit{w} bits, then the cost for storing a single value is $l + w$. For storing a set of consecutive values of length \textit{m}, the cost is $\lfloor m \times l \div w\rfloor + m$ bits. In other words, the total cost is one bit per message, plus the cost of one index per \textit{w} messages.
 
-\begin{table}
-\centering
-\caption{Sparse bit set example}
-\begin{tabular}{|c|c|} \hline
-Index & Bit Field \\ \hline
-0 & 01100001 \\ \hline
-4 & 00010000 \\ \hline
-15 & 10100100 \\ \hline
-\end{tabular}
-\label{fig:bitset}
-\end{table}
+%
+%\begin{table}
+%\centering
+%\caption{Sparse bit set example}
+%\begin{tabular}{|c|c|} \hline
+%Index & Bit Field \\ \hline
+%0 & 01100001 \\ \hline
+%4 & 00010000 \\ \hline
+%15 & 10100100 \\ \hline
+%\end{tabular}
+%\label{fig:bitset}
+%\end{table}
 
 Consecutive messages (from any starting value) are the best-case scenario for sparse bitsets. In the worst case, the message IDs differ by at least \textit{w}, causing each message to incur a $l + w$ cost for storage and a total cost of $m \times (l + w)$ bits.
 
@@ -275,127 +278,201 @@ Determining if a message [\textit{P}, \textit{M}] is in the set is accomplished 
     
 \subsubsection{Retrieving Unread Messages}
 
-When performing a \textbf{read} or \textbf{read\_all} operation, the proposed paradigm must only return messages which have not previously been returned by a \textbf{read} or \textbf{read\_all} to the requesting process. Since every process has its own set of of messages which it has read, the requesting process sends this set of read messages to the requestee.
+When performing a \textbf{read} or \textbf{read\_all} operation, MELON must only return messages which have not previously been returned by a \textbf{read} or \textbf{read\_all} to the requesting process. Since every process has its own set of of messages which it has read, the requesting process sends this set of read messages to the requestee.
 
 A \textbf{read} request contains a message template and a set of messages which have already been read. The receiving process will match the message template against the messages in its local storage, excluding messages which are in the set of read messages. If a matching unread message is found, the process will send the message to the requestor. If multiple matching unread messages are found, the process will send the message with the lowest message ID. If no matching messages are found, the process returns an empty response.
 
 Similarly, \textbf{read\_all} requests also include the message template and the set of read messages. A process receiving a \textbf{read\_all} request will match the message template against messages in the local storage, excluding messages in the set of read messages. The process will then return all matching unread messages to the requestor. If no matching unread messages are found, the process returns an empty set.
 
-\section{Comparison to Existing Paradigms}
+\section{Quantitative Evaluation}
 
-The proposed paradigm provides advantages over existing paradigms when used to develop applications in a MANET environment. This section compares the proposed paradigm to publish/subscribe, remote procedure calls (RPC), and tuple spaces: three paradigms often used in applications and middleware for MANETs.
+To determine if MELON is a feasible solution for actual MANET applications, we chose to compare its performance to canonical implementations of publish/subscribe, RPC, and tuple spaces. If a prototype implementation of MELON performs at least as well as existing paradigms, then it is likely to be useful in actual practice. In the experiments below, we compare speed of operations, message overhead, throughput, and latency in a MANET context.
 
-\subsection{Message Persistence}
+\subsection{Experimental Setup}
 
-In the unreliable MANET environment, disconnections frequently occur during the exchange of messages. Since disconnections can be prolonged, the networking layers will assume the connection is entirely lost and cease attempts at retransmission.
+In order to judge the performance of MELON, we used applications written in the using prototype implementation and evaluated them using the EXata network emulator\cite{exata}. Using an emulator allowed us to run real applications but also have precisely repeatable environments and scenarios.
 
-    Publish/subscribe allows message publication without any consideration for the state of the subscribers. Publish/subscribe itself does not specify how “missed” publications should be handled. A publish/subscribe system can utilize “brokers” which manage subscriptions and facilitate delivery of publications. Brokers can then serve as message buffers and provide more reliable message delivery in the face of disconnections. In distributed publish/subscribe systems, however, the brokers must be self-organizing. For MANETs, the overhead and complexity of managing an overlay network of brokers is exacerbated by the transience of nodes. It is common, then, for distributed publish/subscribe systems to not provide any message persistence. If a subscriber is not available at the time of publication, the message will not be received by that subscriber.
+Two scenarios were used for our experiments. In the first, 11 nodes are placed in static positions which force routes to be at least three hops. In the second, 50 nodes move using random waypoint at approximately walking speeds (maximum of 10m/s) signal propagation is limited to 50m in order to match an indoor environment and the two-ray model is used for path loss. Every run of the mobile scenario uses the same random seed and so the mobility pattern is identical. In both scenarios, 802.11b WiFi is used with the DSR\cite{dsr} routing protocol.
 
-    Since RPC requires a connection for any communication, disconnections typically cause RPC to block a process entirely until a remote node hosting an appropriate method is available. Messages themselves only exist briefly during the RPC transaction. Messages cannot be sent if a synchronous connection cannot be made to a remote host.
-    In tuple spaces and the proposed paradigm, message persistence is inherent in the paradigms. In both paradigms, exchange of messages is achieved by storing the messages in a shared storage space, then the recipients retrieve the message from storage. Any amount of time may elapse between the storage of a message and its retrieval. This flexibility allows the communication scheme to work well even in the face of prolonged disconnections and is the reason we have chosen it for the proposed paradigm.
-    
-\subsection{Flexible Communication}
+The experiment coordination application described in the next section was used to run the applications and gather results in a consistent manner.
 
-    A general purpose communication paradigm for MANET applications should have the flexibility to support both unicast and multicast communication.
-
-    Publications in publish/subscribe are inherently multicast, since any number of nodes can subscribe. Unicast communication is much less comfortable in publish/subscribe, as it involves negotiating which topics should be used to identify which nodes. Publish/subscribe also does not provide any mechanism for ensuring or even acknowledging message delivery to any given subscriber, especially since publishers and subscribers are intended to be unaware of each other.
-
-Since RPC mimics local method calls, it is natural that RPC is best suited for unicast communication, in which the message is the argument to the method and the return value is the response from the remote host. Assuming multicast RPC functions in the same manner, then a multicast RPC invocation would expect multiple return values, one from each remote host. In a MANET, it is likely not every remote host would reliably return a response, further complicating the semantics. A typical RPC invocation would block waiting for a response, but it is not practical to wait for all responses to a multicast RPC invocation, when some responses may never be received. The use of futures or asynchronous callbacks can improve the situation, but causes semantics to differ even more from unicast RPC.
-
-    Tuple spaces are naturally multicast, since any number of nodes may read a given tuple. Unicast communication can be achieved by using a field in the tuple as the recipient’s address. The recipient then performs in operations on tuples with their address in order to receive the tuples.
-
-    The proposed paradigm divides communications into three types: messages which can be received by any single recipient, messages which can be received by a specific single recipient, and messages which can be received by any number of recipients. Messages sent with a store operation can only be consumed by a single take operation. Directed messages are also sent with store, but can only be consumed with a take performed by the intended recipient. write stores messages which may be read by any number of recipients and can never be removed by a take. The proposed paradigm also provides the ability to receive multiple messages at once with \textbf{take\_all} and \textbf{read\_all} operations.    
-    
-\subsubsection{Private Communication}
-
-    Networked applications commonly require private, unicast communication. For example: SMS services, direct messaging in social networks, or communication of sensitive data. For our purposes, private communication is the exchange of messages between two parties which cannot be disrupted or eavesdropped upon by a third party from within the context of the paradigm itself. In other words, concerns such as encrypting data or sniffing network traffic would be outside the paradigm context.
-
-    RPC by default is unicast and there is no method in the paradigm for eavesdropping or disrupting RPC between two nodes. However, RPC has a different complication: remote hosts are generally identified by their exposed methods and there is no mechanism for attaching identity to the hosts. RPC will connect to any remote method with the expected API. So while private communication is the default in RPC, there is an addressing issue which makes it complicated to communicate with the desired recipient.
-
-Communication in publish/subscribe is inherently public and multicast. Any subscriber can subscribe to any set of publications, making it simple to eavesdrop on communications. Bidirectional communication is also difficult in publish/subscribe, since there is no information attached to a publication indicating the identity of the publisher. This is by design, but it complicates situations in which two hosts need to converse.
-
-In tuple spaces, tuples are public and available to any recipient. Not only can any node read any communications without detection, any node can also disrupt communications by removing tuples intended for a specific recipient.
-
-The proposed paradigm provides two access control mechanisms for messages. First, messages are explicitly either available for any recipient to remove or limited to read-only operations. Read-only messages are useful in scenarios where information is intended to be widely available and removal of the information would be considered disruptive to the application. Second, if messages are directed to a specific recipient, then the paradigm implementation is responsible for disallowing any other nodes from reading or removing the given message. This allows simple private unicast communication between nodes.
-
-\subsection{Multiple Read Problem}
-
-The multiple read problem \cite{mrdp} is specific to tuple spaces: in a situation where the tuple space contains many tuples of interest, how do multiple readers read all the relevant tuples? In tuple spaces, the non-destructive rd operation returns a copy of a matching tuple, but it may return the same tuple any number of times. One solution is to use a single tuple as a mutex, lock the tuple space, remove all matching tuples with in, then replace them in the tuple space. However, this ruins any concurrency the tuple space would have had with multiple readers.
-
-Another solution is to provide a bulk rd operation to return all matching tuples. However, once a “snapshot” of the tuple space has been taken with a bulk rd, new matching tuples may be introduced. A second bulk rd would return both the old (already seen) tuples and the new tuples.
-
-The proposed paradigm avoids this issue by only returning messages unread by the current process. Assuming a static set of stored messages, repeated read operations in the same process would eventually return each matching message exactly once. The proposed paradigm also provides the read\_all operation for reading messages in bulk. Unlike the tuple space version, read\_all also only returns unread messages. This allows applications to easily read all existing matching messages, after which read\_all will only return messages newly added to the storage.
-
-\section{Experimental Results}
-
-\subsection{Setup}
-
-In order to judge the performance of the proposed paradigm, we used applications written in the using prototype implementation and evaluated them using the EXata network emulator. Using an emulator allowed us to run real applications but also have precisely repeatable environments and scenarios.
-
-Two scenarios were used for our experiments. In the first, nodes are placed in static positions which force multihop routes. In the second, nodes move using random waypoint at approximately walking speeds.
-
-In both scenarios, 802.11b used blah blah...
-
-The experiment coordination application described in the next section was used to run the applications and gather results.
-
-\subsubsection{Coordinator}
+\subsubsection{Experiment Coordination Application}
 
 \begin{figure}
 \centering
-\includegraphics[scale = .50, clip, trim = 10px 240px 10px 250px]{figures/experiment_arch.pdf}
+\includegraphics[scale = .34, clip, trim = 94px 279px 24px 252px]{figures/experiment_arch.pdf}
 \caption{Coordinator Architecture}
 \label{fig:coordarchitecture}
 \end{figure}
 
-To ease the process of repeatedly setting up experiments, we developed a framework written with the proposed paradigm which is responsible for coordinating experiments. The application handles running real applications on multiple hosts, executing the network emulator, and gathering resulting output into a single location.
+To ease the process of repeatedly setting up experiments, we developed a framework written with MELON which is responsible for coordinating experiments. The application handles running real applications on multiple hosts, executing the network emulator, and gathering resulting output into a single location.
 
-The architecture of the framework is illustrated in Figure \cite{fig:coordarchitecture}. For simplicity, the coordinator resides on the same host as the network emulator. The coordinator sends out commands to clients which reside on each host. The clients are responsible for executing programs on their local host and sending resulting output to the central coordinator.
+The architecture of the framework is illustrated in Figure \ref{fig:coordarchitecture}. For simplicity, the coordinator resides on the same host as the network emulator. The coordinator sends out commands to clients which reside on each host. The clients are responsible for executing programs on their local host and sending resulting output to the central coordinator.
 
-Figure[?] shows the steps the coordinator, clients, and applications use to conduct an experiment. The coordinator first writes a job containing the command to execute and any relevant options. Each client reads the job, starts the command, then stores a confirmation once the application has started and is ready to begin. When the coordinator has taken a confirmation from each host, it starts the network emulator. Then it writes a “go” message. Upon reading the go message, each client signals the application to begin.
+The coordinator first writes a job containing the command to execute and any relevant options. Each client reads the job, starts the command, then stores a confirmation once the application has started and is ready to begin. When the coordinator has taken a confirmation from each host, it starts the network emulator. Then it writes a ``go'' message. Upon reading the go message, each client signals the application to begin.
 
-As the application runs, the client gathers output and stores it. When the application finishes, it signals that it is done and then awaits a kill signal from the client. The client also stores a “done” signal. When the coordinator has taken a “done” message from each client, it collects the results and then sends a “kill” message. The clients then kill the applications and the process is ready to start again.
-
+As the application runs, the client gathers output and stores it. When the application finishes, it signals that it is done and then awaits a kill signal from the client. The client also stores a ``done'' signal. When the coordinator has taken a ``done'' message from each client, it collects the results and then sends a ``kill'' message. The clients then kill the applications and the process is ready to start again.
 
 \subsection{Operation Speed}
 
+\begin{figure}
+\centering
+
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/read_speed.pdf}
+\caption{Read Speed}
+\label{fig:readspeed}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/in_speed.pdf}
+\caption{Take Speed}
+\label{fig:takespeed}
+\end{subfigure}
+
+\caption{Operation Speeds}
+\end{figure}
+
 To establish a baseline for performance, we measured the time for the \textbf{write}, \textbf{read}, \textbf{store}, and \textbf{take} operations directly on a local message storage and compared the results to the LighTS\cite{lights} local tuple space implementation used by LIME. In these experiments, all messages are first stored, then either read or removed from the local storage. No network communication is involved.
 
-When comparing \textbf{read} and \textbf{rd}, we simulate the new paradigm's feature of only returning unread messages by using an incrementing ID in the tuples and then performing a \textbf{rd} operation for each ID. If we did not do this, LighTS could return the same tuple for each \textbf{rd} operation.
+When comparing \textbf{read} and \textbf{rd}, we simulate the MELON's feature of only returning unread messages by using a sequential integer ID in the tuples and performing a \textbf{rd} operation for each ID. If we did not do this, LighTS could return the same tuple for each \textbf{rd} operation.
 
-In both LighTS and the new paradigm, messages are stored in what is essentially an array. Since we are not removing any messages from the store, each operation must linearly search the vector and therefore takes O(\textit{nm}) time, where \textit{n} is the length of the message or tuple and \textit{m} is the number of stored messages or tuples. Naturally, operations returning messages near the beginning of the vector are faster, while the slowest operation returns the last message in the vector. In our experiments, this cost did not become apparent until searching 100,000 messages. The average time per operation from 10,000 to 100,000 increased ~9x for LighTS and ~10x for the new paradigm, with total read time taking just under a minute. It is unsurprising the new paradigm is slightly slower, since it must also check that a message is not in the "read" list before returning it.
+In both LighTS and MELON, messages are stored in what is essentially an array. Since we are not removing any messages from the store, each operation must linearly search the array and therefore takes O(\textit{nm}) time, where \textit{n} is the length of the message or tuple and \textit{m} is the number of stored messages or tuples. Naturally, operations returning messages near the beginning of the array are faster, while the slowest operation returns the last message in the array. In our experiments, this cost did not become apparent until searching 100,000 messages. The average time per operation from 10,000 to 100,000 increased ~9x for LighTS and ~10x for MELON, with total read time taking just under a minute. It is unsurprising MELON is slightly slower, since it must also check that a message is not in the ``read'' list before returning it.
 
-On the other hand, removing messages is naturally quite fast, since the matching message is always the first message in the store. All \textbf{take}/\textbf{in} operations require less than 8ms to execute on average. The new paradigm is slightly faster here due to differences in how removal is implemented, although speeds converge as the number of operations performed increases. The performance improvement is likely due to runtime optimizations of the JVM rather than any feature of the message stores.
+On the other hand, removing messages is naturally quite fast, since the matching message is always the first message in the store. All \textbf{take}/\textbf{in} operations require less than 8\textit{ms} to execute on average. MELON is slightly faster here due to differences in how removal is implemented, although speeds converge as the number of operations performed increases. The performance improvement is likely due to runtime optimizations of the JVM rather than any feature of the message stores.
 
-Storing messages is faster than removing them for both implementations. In LighTS there is slightly more constant overhead for adding new tuples, so \textbf{out} operations are a little slower than \textbf{write} and \textbf{store} in the new paradigm.  However, in reality both implementations are plenty fast for typical applications, since storing a message takes less than 10ms on average, and usually less than 4ms.
+Storing messages is faster than removing them for both implementations. In LighTS there is slightly more constant overhead for adding new tuples, so \textbf{out} operations are a little slower than \textbf{write} and \textbf{store} in MELON.  However, in reality both implementations are plenty fast for typical applications, since storing a message takes less than 10\textit{ms} on average, and usually less than 4\textit{ms}.
 
-Overall, the new paradigm performs roughly the same or better than LighTS when performing serial operations.
+Overall, MELON performs roughly the same or better than LighTS when performing serial operations.
 
 \subsection{Communication Overhead}
 
-For any communication library or framework, the message cost added by use of the library is an important factor in determining its usefulness. In these experiments, we measure the number of bytes actually sent over the network, divide by the number of messages sent (in this case, 1000) and subtract the 1KB application payload. This provides us with the overhead introduced by the paradigm. We compare the overhead of the new paradigm to canonical implementations of publish/subscribe, RPC, and tuple spaces in figure \ref{fig:overhead}.
+\begin{figure}
+\centering
+\includegraphics[scale = .50, clip, trim = 0px 0px 0px 0px]{figures/overhead.pdf}
+\caption{Message Overhead}
+\label{fig:overhead}
+\end{figure}
+
+For any communication library or framework, the message cost added by use of the library is an important factor in determining its usefulness. In these experiments, we measure the number of bytes actually sent over the network, divide by the number of messages sent (in this case, 1000) and subtract the 1KB application payload. This provides us with the overhead introduced by the paradigm. We compare the overhead of MELON to canonical implementations of publish/subscribe, RPC, and tuple spaces in figure \ref{fig:overhead}.
 
 Publish/subscribe and RPC have very low overhead and provide a good baseline. In the case of publish/subscribe, the only added information to a publication is the topic. Periodic subscription messages are small and infrequent compared to the number of messages sent. For RPC, there is one initial exchange to find the remote object, then later messages only need the object and method names plus the payload itself.
 
-As in the operation speed experiments, we use the LighTS tuple space implementation. The serialized versions of tuples and tuple templates are very large and must be sent for each request. If a simpler data structure were used, overhead is be expected to be similar to the new paradigm's overhead for \textbf{take}.
+As in the operation speed experiments, we use the LighTS tuple space implementation. The serialized versions of tuples and tuple templates are very large and must be sent for each request. If a simpler data structure were used, overhead would be expected to be similar to MELON's overhead for \textbf{take}.
 
-For the new paradigm, \textbf{take} and \textbf{read} requests must send a message template, so the size of the request is dependent on how many values the template contains. For \textbf{read} operations, each request must also send information on previously read messages as described in Section \ref{section:readmessages}, which increases as the number of read messages increases.
+For MELON, \textbf{take} and \textbf{read} requests must send a message template, so the size of the request is dependent on how many values the template contains. For \textbf{read} operations, each request must also send information on previously read messages as described in Section \ref{sec:readmessages}, which increases as the number of read messages increases.
 
 \subsection{Message Latency}
 
-Figures [?] and [?] show the latency between a client's request for a message and the receipt of a matching message in the static and mobile scenarios. In these experiments, a single host writes out 1000 messages with a 1KB payload, and the other hosts concurrently read the messages. Tuple spaces and the new paradigm used the \textit{rd}/\textit{read} operations to retrieve the messages one at a time, rather than the bulk retrieval \textbf{rdg} or \textbf{read_all}.
+\begin{figure}
+\centering
 
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/latency_static.pdf}
+\caption{Static Scenario}
+\label{fig:latencystatic}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/latency_mobile.pdf}
+\caption{Mobile Scenario}
+\label{fig:latencymobile}
+\end{subfigure}
 
+\caption{Message Latency}
+\end{figure}
+
+Figures \ref{fig:latencystatic} and \ref{fig:latencymobile} show the average latency between a client's request for a message and the receipt of a matching message in the static and mobile scenarios. The error lines indicate the standard deviation. In these experiments, a single host writes out 1,000 messages with a 1KB payload, and the other hosts concurrently read the messages. Tuple spaces and MELON used the \textbf{rd}/\textbf{read} operations to retrieve the messages one at a time, rather than the bulk retrieval with \textbf{rdg} or \textbf{read\_all}. Since publish/subscribe does not involve a ``request'' beyond the initial operation, latency was measured as the time elapsed between receiving sequentially numbered publications.
+
+MELON does show higher average latency rates in the static scenario, although for three or more receivers the standard deviation is lower than the other paradigms. In the more realistic mobile scenario, however, MELON latency is about the same or slightly lower than tuple spaces. Comparing the static and mobile scenarios also demonstrates one of the issues in wireless networks: the mobile scenario allows distinct routes to form between hosts with less interference, while the static scenario has many collisions, causing more communication delays even though the distance between devices is smaller.
 
 \subsection{Message Throughput}
 
-Throughput was measured in terms of messages delivered per second. As in the other experiments, 1000 messages with a 1kb payload are output by one host, while the other hosts read the messages individually.
+\begin{figure}
+\centering
 
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/throughput_static.pdf}
+\caption{Static Scenario}
+\label{fig:throughputstatic}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/throughput_mobile.pdf}
+\caption{Mobile Scenario}
+\label{fig:throughputmobile}
+\end{subfigure}
+\caption{Message Throughput}
+\end{figure}
+
+Throughput in these experiments was measured on the receiver side in terms of messages delivered per second. As in the other experiments, 1,000 messages with a 1kb payload are output by one host, while the other hosts read the messages one at a time. Figures \ref{fig:throughputstatic} and \ref{fig:throughputmobile} show the average throughput as the number of receivers increases.
+
+Publish/subscribe dominates in these experiments because it is the only push-based paradigm, allowing the sender to publish messages at a high rate without requests or acknowledgments from the receivers. Also, subscribers may receive multiple publications concurrently which increases throughput capacity.
+
+Despite having higher average latency than the other paradigms, MELON demonstrates good throughput in both the static and mobile scenarios. However, throughput for all paradigms drops off dramatically as more receivers are added. Also, all paradigms performed better in the mobile scenario than in the static scenario. This is likely due to two factors: devices were not forced to be more than one hop apart, and the large number of devices allows distinct routes between devices and decreases wireless broadcast collisions.
 
 \section{Related Work}
 
+The concept of a distributed shared message store is based on the idea of tuple spaces introduced with the Linda\cite{linda} coordination language. Several projects have adapted tuple spaces to MANETs, including LIME\cite{lime}, MESHmdl\cite{meshmdl}, TOTA\cite{tota}, and EgoSpaces, of which LIME is likely the most well-cited example.
 
-\section{Conclusions}
+\cite{limerevisted} discusses the difficulties LIME encounters when attempting to implement tuple space semantics, including situations that can lead to livelocks. LIME also relies on explicit join and leave operations to federate distributed tuple spaces, which is at odds with the frequently unexpected disconnections in MANETs. LIME II, Limone, and CoreLIME are some projects intended to address the shortcomings in the original LIME.
 
+Further surveys of middleware, languages, and communication paradigms for MANET development can be found in \cite{mine}, \cite{collins2012quantitative}, and \cite{mwtrends}.
+
+\subsection{Comparison to Existing Paradigms}
+
+This section compares MELON to publish/subscribe, remote procedure calls (RPC), and tuple spaces: three paradigms often used as the basis for MANET middleware.
+
+\subsubsection{Message Persistence}
+
+In the unreliable MANET environment, disconnections frequently occur during the exchange of messages. Since disconnections can be prolonged, the networking layers will assume the connection is entirely lost and cease retrying. By having a message persist in some way, a paradigm can overcome these disconnections and deliver the message at a later time.
+
+Publish/subscribe allows message publication without any consideration for the state of the subscribers. Publish/subscribe itself does not specify how ``missed'' publications should be handled. A publish/subscribe system can utilize ``brokers'' which manage subscriptions and facilitate delivery of publications. Brokers can then serve as message buffers and provide more reliable message delivery in the face of disconnections. In distributed publish/subscribe systems, however, the brokers must be self-organizing, and in MANET this is complicated by how quickly the network can change. It is common for distributed publish/subscribe systems not to provide message persistence. If a subscriber is not available at the time of publication, the message will not be received.
+
+Since RPC requires a connection for any communication, disconnections typically cause RPC to block a process entirely until a remote node hosting an appropriate method is available. Messages themselves only exist briefly during the RPC transaction. Messages cannot be sent if a synchronous connection cannot be made to a remote host.
+    
+In tuple spaces and MELON, message persistence is inherent in the paradigms. In both paradigms, exchange of messages is achieved by storing the messages in a shared storage space. Any amount of time may elapse between the storage of a message and its retrieval. This allows reliable communication even in the face of prolonged disconnections and is the reason we have chosen it for MELON.
+    
+\subsubsection{Flexible Communication}
+
+A general purpose communication paradigm for MANET applications should have the flexibility to support both unicast and multicast communication.
+
+Publications in publish/subscribe are inherently multicast, since any number of nodes can subscribe. Unicast communication is much less comfortable in publish/subscribe, as it involves negotiating which topics should be used to identify which nodes. Publish/subscribe also does not provide any mechanism for ensuring or even acknowledging message delivery to any given subscriber, especially since publishers and subscribers are intended to be unaware of each other.
+
+Since RPC mimics local method calls, it is natural that RPC is best suited for unicast communication, in which the message is the argument to the method and the return value is the response from the remote host. Assuming multicast RPC functions in the same manner, then a multicast RPC invocation would expect multiple return values, one from each remote host. In a MANET, it is likely not every remote host would reliably return a response, further complicating the semantics. A typical RPC invocation would block waiting for a response, but it is not practical to wait for all responses to a multicast RPC invocation, when some responses may never be received. The use of futures or asynchronous callbacks can improve the situation, but causes semantics to differ even more from unicast RPC.
+
+Tuple spaces are naturally multicast, since any number of nodes may read a given tuple. Unicast communication can be achieved by using a field in the tuple as the recipient’s address. The recipient then performs in operations on tuples with their address in order to receive the tuples.
+
+MELON divides communications into three types: messages which can be received by any single recipient, messages which can be received by a specific single recipient, and messages which can be received by any number of recipients. Messages sent with a store operation can only be consumed by a single take operation. Directed messages are also sent with store, but can only be consumed with a take performed by the intended recipient. write stores messages which may be read by any number of recipients and can never be removed by a take. MELON also provides the ability to receive multiple messages at once with \textbf{take\_all} and \textbf{read\_all} operations.    
+    
+\subsubsection{Private Communication}
+
+Networked applications commonly require private, unicast communication. For example: SMS services, direct messaging in social networks, or communication of sensitive data. For our purposes, private communication is the exchange of messages between two parties which cannot be disrupted or eavesdropped upon by a third party from within the context of the paradigm itself. In other words, concerns such as encrypting data or sniffing network traffic would be outside the paradigm context.
+
+RPC is unicast by default and there is no method in the paradigm for eavesdropping or disrupting RPC between two nodes. However, RPC has a different complication: remote hosts are generally identified by their exposed methods and there is no mechanism for attaching identity to the hosts. RPC will connect to any remote method with the expected API. So while private communication is the default in RPC, there is an addressing issue which makes it complicated to communicate with a specific recipient.
+
+Communication in publish/subscribe is inherently public and multicast. Any subscriber can subscribe to any set of publications, making it simple to eavesdrop on communications. Bidirectional communication is also difficult in publish/subscribe, since there is no information attached to a publication indicating the identity of the publisher. This is by design, but it complicates situations in which two hosts need to dialog.
+
+In tuple spaces, tuples are public and available to any recipient. Not only can any node read any communications without detection, any node can also disrupt communications by removing tuples intended for a specific recipient.
+
+MELON provides two access control mechanisms for messages. First, messages are explicitly either available for any recipient to remove or limited to read-only operations. Read-only messages are useful in scenarios where information is intended to be widely available and removal of the information would be considered disruptive to the application. Second, if messages are directed to a specific recipient, then the paradigm implementation is responsible for disallowing any other nodes from reading or removing the given message. This allows simple private unicast communication between nodes.
+
+\subsubsection{Multiple Read Problem}
+
+The multiple read problem \cite{mrdp} is specific to tuple spaces: in a situation where the tuple space contains many tuples of interest, how do multiple readers read \textit{all} relevant tuples? In tuple spaces, the non-destructive \textbf{rd} operation returns a copy of a matching tuple, but it may return the same tuple any number of times since the tuple is chosen nondeterministically between all matching tuples. In many tuple space implementations, this occurs because the tuples are stored sequentially and so the first matching tuple is always the same\cite{de2012new}.
+
+One solution is to use a single tuple as a mutex, lock the tuple space, remove all matching tuples with \textbf{in}, then replace them in the tuple space. However, this ruins any concurrency the tuple space could have had with multiple readers.
+
+Another solution is to provide a bulk \textbf{rd} operation to return all matching tuples. However, once a ``snapshot'' of the tuple space has been taken with a bulk \textbf{rd}, new matching tuples may be introduced. A second bulk \textbf{rd} would return both the old (already seen) tuples and the new tuples. A similar suggestion from \cite{edwards2001jini} is to remove all matching tuples inside a transaction, then abort the transaction in order to actually leave the tuple space unmodified. However, this again leaves the problem of separating new tuples from previously-read tuples.
+
+MELON avoids this issue by only returning messages unread by the current process. Assuming a fixed set of stored messages, repeated \textbf{read} operations in the same process would eventually return each matching message exactly once. MELON also provides the \textbf{read\_all} operation for reading messages in bulk. Unlike the tuple space version, \textbf{read\_all} only returns unread messages. This allows applications to easily read all existing matching messages, after which \textbf{read\_all} will only return messages stored since or unavailable during the previous operation.
+
+\section{Conclusion}
+
+MELON is a new communication paradigm for MANET application and middleware development. It provides a unique combination of new features for interesting with a distributed shared message store, including separation between read-only messages and removable messages, private messages, bulk message operations, and tracking of read messages. MELON operations are carefully designed to work well in and support the MANET environment.
 
 \bibliographystyle{unsrt}
 \bibliography{refs}
