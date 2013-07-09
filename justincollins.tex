@@ -119,33 +119,24 @@ A message template is similar to a message, except it may contain both values an
 
 Each operation is implemented as a separate function call. \textbf{store} and \textbf{write} operations have null return values and return as soon as the saved message is available in the message store. \textbf{take} and \textbf{read} operations block by default until a matching message is returned, but may be set to non-blocking on a per-call basis.
 
-\vspace{-5 mm}
 \begin{table}
-\begin{tabular}{c}
-\textbf{store}(\textit{message}, \textit{[address]}) $\rightarrow$ \textit{null}
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Operation} & \textbf{Return Type} \\ \hline
+\textbf{store}(\textit{message}, \textit{[address]}) & \textit{null} \\ \hline
+\textbf{write}(\textit{message}) & \textit{null} \\ \hline
+\textbf{take}(\textit{template}, \textit{[block = true]}) & \textit{message} or \textit{null} \\ \hline
+\textbf{read}(\textit{template}, \textit{[block = true]}) & \textit{message} or \textit{null} \\ \hline
+\textbf{take\_all}(\textit{template}, \textit{[block = true]}) & \textit{array} \\ \hline
+\textbf{read\_all}(\textit{template}, \textit{[block = true]}) & \textit{array} \\ \hline
 \end{tabular}
+\caption{MELON Operations}
 \end{table}
-\vspace{-5 mm}
 
 The \textbf{store} operation takes a message as an argument and optionally an address. When called, \textbf{store} saves a copy of the message in the message store. Messages saved with \textbf{store} may only be retrieved with a \textbf{take} or \textbf{take\_all} operation. If an address is provided, then only the host with a matching identity can remove the message. Since storage space is bounded, messages may be automatically garbage collected from the storage space prior to explicit removal by a \textbf{take} or \textbf{take\_all} operation.
 
-\vspace{-5 mm}
-\begin{table}
-\begin{tabular}{c}
-\textbf{write}(\textit{message}) $\rightarrow$ \textit{null}
-\end{tabular}
-\end{table}
-\vspace{-5 mm}
-
 The \textbf{write} operation also stores a single message in the message store, but the message may only be copied from the storage space with a \textbf{read} operation, never explicitly removed. Messages written with the \textbf{write} operation may be automatically garbage collected.
-
-\vspace{-5 mm}
-\begin{table}
-\begin{tabular}{c}
-\textbf{take}(\textit{template}, \textit{[block = true]}) $\rightarrow$ \textit{message} or \textit{null}
-\end{tabular}
-\end{table}
-\vspace{-5 mm}
 
 A \textbf{take} operation requires a message template as the first argument and an optional boolean for the second argument.
 
@@ -155,15 +146,7 @@ The block argument, which defaults to true if no argument is given, controls beh
 
 Once a message has been returned by a \textbf{take} operation, it is removed from the message store and may not be returned by a subsequent operation in any process.
 
-\vspace{-5 mm}
-\begin{table}
-\begin{tabular}{c}
-\textbf{read}(\textit{template}, \textit{[block = true]}) $\rightarrow$ \textit{message} or \textit{null}
-\end{tabular}
-\end{table}
-\vspace{-5 mm}
-
-    The \textbf{read} operation accepts the same arguments as \textbf{take}. A \textbf{read} operation will only return messages stored with a \textbf{write} operation which have not already been read by the current process.
+The \textbf{read} operation accepts the same arguments as \textbf{take}. A \textbf{read} operation will only return messages stored with a \textbf{write} operation which have not already been read by the current process.
 
 If a message matching the given message template is available, it will be copied and returned, but not removed from the message store. Once a message has been returned to a process, the message is considered to have been read by that process and will not be returned by any subsequent read or read\_all operations in the same process.
 
@@ -181,25 +164,13 @@ A message may be \textbf{read} by any number of processes, but only once per pro
 \label{fig:readprocesses}
 \end{table}
 
-    Table \ref{fig:readprocesses} illustrates one process writing a single message containing the integer \texttt{1} and the string \texttt{"hello"}. Processes B and C each perform a \textbf{read} operation with the template \texttt{[Integer, String]} which matches the message stored by process A. Since \textbf{read} does not modify the storage space, the value of \textit{m} for both process B and C will be a copy of the message \texttt{[1, "hello"]} from Process A.
+Table \ref{fig:readprocesses} illustrates one process writing a single message containing the integer \texttt{1} and the string \texttt{"hello"}. Processes B and C each perform a \textbf{read} operation with the template \texttt{[Integer, String]} which matches the message stored by process A. Since \textbf{read} does not modify the storage space, the value of \textit{m} for both process B and C will be a copy of the message \texttt{[1, "hello"]} from Process A.
 
-\begin{table}
-\begin{tabular}{c}
-\textbf{take\_all}(\textit{template}, \textit{[block = true]}) $\rightarrow$ \textit{array}
-\end{tabular}
-\end{table}
+The \textbf{take\_all} operation performs a bulk \textbf{take} on the given message template. The return value of \textbf{take\_all} is an array of matching messages. As with \textbf{take}, messages returned by a \textbf{take\_all} are removed from the shared storage and may not be returned by any subsequent operation in any process. A \textbf{take\_all} operation will not return a directed message unless the addressee matches the current process. Only messages stored by a \textbf{store} operation will be returned by \textbf{take\_all}.
 
-    The \textbf{take\_all} operation performs a bulk \textbf{take} on the given message template. The return value of \textbf{take\_all} is an array of matching messages. As with \textbf{take}, messages returned by a \textbf{take\_all} are removed from the shared storage and may not be returned by any subsequent operation in any process. A \textbf{take\_all} operation will not return a directed message unless the addressee matches the current process. Only messages stored by a \textbf{store} operation will be returned by \textbf{take\_all}.
+When there are no matching messages and the value of \textit{block} is \textit{true} or unspecified, the operation will block until at least one matching message is available and then return an array of available messages. If \textit{block} is \textit{false}, \textbf{take\_all} will return an empty array.
 
-    When there are no matching messages and the value of \textit{block} is \textit{true} or unspecified, the operation will block until at least one matching message is available and then return an array of available messages. If \textit{block} is \textit{false}, \textbf{take\_all} will return an empty array.
-
-\begin{table}
-\begin{tabular}{c}
-\textbf{read\_all}(\textit{template}, \textit{[block = true]}) $\rightarrow$ \textit{array}
-\end{tabular}
-\end{table}
-
-    \textbf{read\_all} performs a bulk read on the given message template and returns an array of matched messages. \textbf{read\_all} only returns messages which have not been previously returned in the same process by a read or \textbf{read\_all}. A \textbf{read\_all} operation will only return messages written by a \textbf{write} operation.
+\textbf{read\_all} performs a bulk read on the given message template and returns an array of matched messages. \textbf{read\_all} only returns messages which have not been previously returned in the same process by a read or \textbf{read\_all}. A \textbf{read\_all} operation will only return messages written by a \textbf{write} operation.
 
 When there are no matching messages and the value of \textit{block} is true or unspecified, the operation will block until at least one matching message is available and return an array of available messages. If \textit{block} is false \textbf{read\_all} will return an empty array.
 
@@ -472,15 +443,15 @@ In tuple spaces, tuples are public and available to any recipient. Not only can 
 
 MELON provides two access control mechanisms for messages. First, messages are explicitly either available for any recipient to remove or limited to read-only operations. Read-only messages are useful in scenarios where information is intended to be widely available and removal of the information would be considered disruptive to the application. Second, if messages are directed to a specific recipient, then the paradigm implementation is responsible for disallowing any other nodes from reading or removing the given message. This allows simple private unicast communication between nodes.
 
-\subsubsection{Multiple Read Problem}
-
-The multiple read problem \cite{mrdp} is specific to tuple spaces: in a situation where the tuple space contains many tuples of interest, how do multiple readers read \textit{all} relevant tuples? In tuple spaces, the non-destructive \textbf{rd} operation returns a copy of a matching tuple, but it may return the same tuple any number of times since the tuple is chosen nondeterministically between all matching tuples. In many tuple space implementations, this occurs because the tuples are stored sequentially and so the first matching tuple is always the same\cite{de2012new}.
-
-One solution is to use a single tuple as a mutex, lock the tuple space, remove all matching tuples with \textbf{in}, then replace them in the tuple space. However, this ruins any concurrency the tuple space could have had with multiple readers.
-
-Another solution is to provide a bulk \textbf{rd} operation to return all matching tuples. However, once a ``snapshot'' of the tuple space has been taken with a bulk \textbf{rd}, new matching tuples may be introduced. A second bulk \textbf{rd} would return both the old (already seen) tuples and the new tuples. A similar suggestion from \cite{edwards2001jini} is to remove all matching tuples inside a transaction, then abort the transaction in order to actually leave the tuple space unmodified. However, this again leaves the problem of separating new tuples from previously-read tuples.
-
-MELON avoids this issue by only returning messages unread by the current process. Assuming a fixed set of stored messages, repeated \textbf{read} operations in the same process would eventually return each matching message exactly once. MELON also provides the \textbf{read\_all} operation for reading messages in bulk. Unlike the tuple space version, \textbf{read\_all} only returns unread messages. This allows applications to easily read all existing matching messages, after which \textbf{read\_all} will only return messages stored since or unavailable during the previous operation.
+%\subsubsection{Multiple Read Problem}
+%
+%The multiple read problem \cite{mrdp} is specific to tuple spaces: in a situation where the tuple space contains many tuples of interest, how do multiple readers read \textit{all} relevant tuples? In tuple spaces, the non-destructive \textbf{rd} operation returns a copy of a matching tuple, but it may return the same tuple any number of times since the tuple is chosen nondeterministically between all matching tuples. In many tuple space implementations, this occurs because the tuples are stored sequentially and so the first matching tuple is always the same\cite{de2012new}.
+%
+%One solution is to use a single tuple as a mutex, lock the tuple space, remove all matching tuples with \textbf{in}, then replace them in the tuple space. However, this ruins any concurrency the tuple space could have had with multiple readers.
+%
+%Another solution is to provide a bulk \textbf{rd} operation to return all matching tuples. However, once a ``snapshot'' of the tuple space has been taken with a bulk \textbf{rd}, new matching tuples may be introduced. A second bulk \textbf{rd} would return both the old (already seen) tuples and the new tuples. A similar suggestion from \cite{edwards2001jini} is to remove all matching tuples inside a transaction, then abort the transaction in order to actually leave the tuple space unmodified. However, this again leaves the problem of separating new tuples from previously-read tuples.
+%
+%MELON avoids this issue by only returning messages unread by the current process. Assuming a fixed set of stored messages, repeated \textbf{read} operations in the same process would eventually return each matching message exactly once. MELON also provides the \textbf{read\_all} operation for reading messages in bulk. Unlike the tuple space version, \textbf{read\_all} only returns unread messages. This allows applications to easily read all existing matching messages, after which \textbf{read\_all} will only return messages stored since or unavailable during the previous operation.
 
 \section{Conclusion}\label{sec:conclusion}
 
