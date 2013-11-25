@@ -1,0 +1,34 @@
+\begin{thebibliography}{1}
+
+\bibitem{mine}
+Justin Collins and Rajive Bagrodia.
+\newblock Programming in mobile ad hoc networks.
+\newblock In {\em WICON '08: 4th Intl Conf. on Wireless Internet}, pages 1--9.
+  ICST, 2008.
+
+\bibitem{mrdp}
+Antony Rowstron and Alan Wood.
+\newblock Solving the linda multiple rd problem.
+\newblock In {\em Coordination Languages and Models}, pages 357--367. Springer,
+  1996.
+
+\bibitem{exata}
+Scalable Networks.
+\newblock Exata: An exact digital network replica for testing, training and
+  operations of network-centric systems.
+\newblock Technical brief, 2008.
+
+\bibitem{lights}
+Davide Balzarotti and et~al.
+\newblock The lights tuple space framework and its customization for
+  context-aware applications.
+\newblock {\em Web Intelli. and Agent Sys.}, 5(2):215--231, 2007.
+
+\bibitem{lime}
+Amy Murphy and et~al.
+\newblock Lime: A coordination middleware supporting mobility of hosts and
+  agents.
+\newblock {\em ACM Trans. on Soft. Eng. and Method.}, 15(3):279--328, July
+  2006.
+
+\end{thebibliography}
