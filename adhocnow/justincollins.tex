@@ -137,9 +137,131 @@ Network communication is handled by ZeroMQ\cite{hintjens2013zeromq}, a high perf
 
 For \textbf{read} and \textbf{read\_all} operations, it is necessary to track which messages have been read. Each process maintains its own list of read messages, which it sends with each \textbf{read} request. We use a compact sparse bit set to track and transfer this information efficiently.
 
-\section{Shared Whiteboard}\label{sec:wb}
+\section{Shared Whiteboard Example}\label{sec:wb}
 
-\section{Quantitative Comparison}
+A shared whiteboard is a digital document which may be edited and viewed by multiple users concurrently and is commonly proposed as an example of an application well-suited to MANETs. It is distributed, real-time, and allows participants to share information. It also presents some interesting charactaristics. Since many participants may be updating the whiteboard, ordering of changes is very important to maintain a consistent document for each user. It is also important that changes be propagated quickly so that each user is working with the latest document.
+
+We have implemented a shared whiteboard in MELON, publish/subscribe, RPC, and tuple spaces using JRuby in order to compare their features and performance.
+Each version shares common code related to the actual whiteboard itself, which is implemented in the Whiteboard class.
+Changes to the shared whiteboard are encapsulated in a Figure object. Each version implements an \texttt{add\_local\_figure} method which is called when the user modifies the shared whiteboard.
+The MELON and tuple space versions also implement an \texttt{add\_remote\_figures} method which is used to retrieve updates from remote nodes.
+
+
+\subsection{MELON}
+
+The MELON version in Table \ref{fig:mwb} writes out each figure in an ordered tuple containing just the new figure. It uses the \textbf{write} operation since every remote node needs to be able to read the figures. To retrieve remote figures, MELON uses \textbf{read\_all} to nondestructively read all previously unread messages containing a \texttt{Figure}. To continuously retrieve messages asynchronously, this method can be called inside a loop in a separate thread. One a group of figures is retrieved, each individual figure is added to the local whiteboard. 
+
+\subsection{Tuple Spaces}
+
+Table \ref{fig:tswb} shows the tuple space version, which is very similar to MELON. To send an update, it outputs a tuple containing just the new figure. Unlike MELON, a misbehaving or misconfigured client could remove the messages from the tuple space, disrupting the shared whiteboard communication. Retrieval of remote messages uses a \textbf{bulk_rd} operation to read all messages containing a figure. Unlike MELON, however, there is no way to read only messages which have already been seen. 
+
+\begin{table}
+\centering
+\begin{tabular}{c c}
+\begin{minipage}{2.75in}
+\begin{verbatim}
+require "melon"
+require "whiteboard"
+
+class MelonWhiteboard < Whiteboard
+  def initialize
+    @melon = Melon.new
+  end
+  
+  def add_local_figure figure
+    @melon.write [Figure]
+  end
+
+  def add_remote_figures
+    figures = @melon.read_all [Figure]
+
+    figures.each do |figure|
+      add_figure figure[0]
+    end
+  end
+end
+\end{verbatim}
+\caption{MELON Whiteboard}
+\end{minipage}\label{fig:mwb}
+&
+\begin{minipage}{2.5in}
+\begin{verbatim}
+require "tuplespace"
+require "whiteboard"
+
+class TSWhiteboard < Whiteboard
+  def initialize
+    @ts = Tuplespace.new
+  end
+
+  def add_local_figure figure
+    @ts.out [Figure]
+  end
+
+  def add_remote_figures
+    figures = @ts.bulk_rd [Figure]
+
+    figures.each do |figure|
+      add_figure figure[0]
+    end
+  end
+end	
+\end{verbatim}
+\caption{Tuple Space Whiteboard}
+\end{minipage}\label{fig:tswb}
+\end{tabular}
+\end{table}
+
+\begin{table}
+\centering
+\begin{tabular}{c c}
+\begin{minipage}{2.75in}
+\begin{verbatim}
+require "ps"
+require "whiteboard"
+
+class PSWhiteboard < Whiteboard
+  def initialize
+    @ps = PS.new
+    
+    @ps.subscribe "whiteboard" do |figure|
+      add_figure figure
+    end
+  end
+
+  def add_local_figure figure
+    @ps.publish "whiteboard", figure
+  end
+end
+\end{verbatim}
+\caption{Publish/Subscribe Whiteboard}
+\end{minipage}\label{fig:pswb}
+&
+\begin{minipage}{2.5in}
+\begin{verbatim}
+require "rpc"
+require "whiteboard"
+
+class RPCWhiteboard < Whiteboard
+  def initialize
+    @rpc = RPC.new
+    @rpc.export self
+  end
+
+  def add_local_figure figure
+    wbs = @rpc.find_all "RPCWhiteboard"
+    wbs.add_figure figure
+  end
+end
+
+
+\end{verbatim}
+\caption{RPC Whiteboard}
+\end{minipage}\label{fig:rpcwb}
+\end{tabular}
+\end{table}
+
+\section{Quantitative Comparison}\label{sec:comparison}
 
 \subsection{Implementation}
 
