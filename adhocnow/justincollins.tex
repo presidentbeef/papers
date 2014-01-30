@@ -100,19 +100,18 @@ The \textbf{take\_all} and \textbf{read\_all} operations are used to retrieve a 
 \begin{minipage}{2.45in}
 \begin{verbatim}
 
-function report(category, headline) {
-   write([category, headline])
-} 
+def report(category, headline)
+   write [category, headline]
+end 
 \end{verbatim}
 \end{minipage}
 &
 \begin{minipage}{2.5in}
 \begin{verbatim}
 
-
-function fetch(category) {
+def fetch(category)
    return read_all([category, String])
-}
+end
 \end{verbatim}
 \end{minipage}
 \\ \hline
@@ -168,13 +167,13 @@ class PSWhiteboard < Whiteboard
   def initialize
     @ps = PS.new
     
-    @ps.subscribe "whiteboard" do |figure|
-      add_figure figure
+    @ps.subscribe("whiteboard") do |figure|
+      add_figure(figure)
     end
   end
 
-  def add_local_figure figure
-    @ps.publish "whiteboard", figure
+  def add_local_figure(figure)
+    @ps.publish("whiteboard", figure)
   end
 end
 \end{verbatim}
@@ -189,12 +188,12 @@ require "whiteboard"
 class RPCWhiteboard < Whiteboard
   def initialize
     @rpc = RPC.new
-    @rpc.export self
+    @rpc.export(self)
   end
 
-  def add_local_figure figure
-    wbs = @rpc.find_all "RPCWhiteboard"
-    wbs.add_figure figure
+  def add_local_figure(figure)
+    wbs = @rpc.find_all("RPCWhiteboard")
+    wbs.add_figure(figure)
   end
 end
 
@@ -235,15 +234,15 @@ class MelonWhiteboard < Whiteboard
     @melon = Melon.new
   end
   
-  def add_local_figure figure
-    @melon.write [Figure]
+  def add_local_figure(figure)
+    @melon.write([Figure])
   end
 
   def add_remote_figures
-    figures = @melon.read_all [Figure]
+    figures = @melon.read_all([Figure])
 
     figures.each do |figure|
-      add_figure figure[0]
+      add_figure(figure[0])
     end
   end
 end
@@ -261,15 +260,15 @@ class TSWhiteboard < Whiteboard
     @ts = Tuplespace.new
   end
 
-  def add_local_figure figure
-    @ts.out [Figure]
+  def add_local_figure(figure)
+    @ts.out([Figure])
   end
 
   def add_remote_figures
-    figures = @ts.bulk_rd [Figure]
+    figures = @ts.bulk_rd([Figure])
 
     figures.each do |figure|
-      add_figure figure[0]
+      add_figure(figure[0])
     end
   end
 end	
@@ -318,24 +317,24 @@ For each implementation, we measured the number of messages lost, the number of 
 \end{minipage}
 \quad
 \begin{minipage}[b]{0.48\linewidth}
+
+\includegraphics[width = \textwidth]{figures/latency.pdf}
+\caption{Message Latency}
+\label{fig:latency}
+\end{minipage}
+\end{figure}
+\begin{figure}[ht]
+\centering
+\begin{minipage}[b]{0.48\linewidth}
 \includegraphics[width = \textwidth]{figures/gooo.pdf}
 \caption{Global Out-of-Order Messages}
 \label{fig:gooo}
 \end{minipage}
-\end{figure}
-
-\begin{figure}[ht]
-\centering
+\quad
 \begin{minipage}[b]{0.48\linewidth}
 \includegraphics[width = \textwidth]{figures/delivery.pdf}
 \caption{Delivery Rates}
 \label{fig:delivery}
-\end{minipage}
-\quad
-\begin{minipage}[b]{0.48\linewidth}
-\includegraphics[width = \textwidth]{figures/latency.pdf}
-\caption{Message Latency}
-\label{fig:latency}
 \end{minipage}
 \end{figure}
 
