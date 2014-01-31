@@ -27,7 +27,7 @@ Developing distributed applications for mobile ad hoc network continues to be ch
 
 \section{Introduction}
 
-Tiny, powerful personal computers are quickly becoming ubiquitious. In the United States, 91\% of adults have cell phones, and 56\% of those are smartphones\cite{cellphones}. Among teens, 78\% have a cell phone, of which 37\% are a smartphone\cite{teenphones}. Add smartphones to the proliferation of tablets and laptops and the ability for consumers to form mobile ad hoc networks (MANETs) is quickly becoming possible. However, applications designed for these networks remain in short supply. Developing MANET applications face a number of challenges, with the primary difficulty being the unpredictably dynamic infrastructureless wireless network itself. Unlike wired networks, failures in MANETs are commonplace instead of exceptional. Nodes may join and leave the network at any time and the network topology is in constant flux. Networked applications must be aware of and handle the challenging nature of MANETs to be useful.
+Tiny, powerful personal computers are quickly becoming ubiquitious. In the United States, 91\% of adults have cell phones, and 56\% of those are smartphones\cite{cellphones}. Among teens, 78\% have a cell phone, of which 37\% are a smartphone\cite{teenphones}. Add smartphones to the proliferation of tablets and laptops and the ability for consumers to form mobile ad hoc networks (MANETs) is quickly becoming possible. However, applications designed for these networks remain in short supply. Developing MANET applications presents a number of challenges with the primary difficulty being the unpredictably dynamic infrastructureless wireless network itself. Unlike wired networks, failures in MANETs are commonplace instead of exceptional. Nodes may join and leave the network at any time and the network topology is in constant flux. Networked applications must be aware of and handle the challenging nature of MANETs to be effective.
 
 Several language, middleware, and library solutions to dealing with MANET communication have been proposed to assist in developing MANET applications. The majority of these proposals are based on traditional distributed computing paradigms\cite{mine}. Of these, publish/subscribe, remote procedure calls, and tuple spaces are commonly used. However, these communication paradigms were originally designed for stable, wired networks or even interprocedural communication on a single machine. While they have been adapted to MANETs, their original designs are limiting and not well-suited to the MANET environment\cite{collins2010quantitative}.
 
@@ -35,11 +35,11 @@ To address the need for a communication paradigm designed specifically to operat
 
 In this paper we describe the MELON paradigm, compare implementing a shared whiteboard application with publish/subscribe, RPC, tuple spaces, and MELON, and finally compare the performance of each whiteboard implementation. We demonstrate MELON is well-suited for developing MANET applications, and while slower than publish/subscribe and RPC, it is the only paradigm to deliver 100\% of sent messages. MELON also delivered whiteboard messages with 95\% less latency and 60\% more in-order messages when compared to tuple spaces.
 
-In Section \ref{sec:design} we review the design of MELON and operations it provides, then discuss the implementation in Section \ref{sec:implementation}. We compare shared whiteboard implemented with different paradigms in Section \ref{sec:wb} and then measure performance of each paradigm in Section \ref{sec:comparison}. Section \ref{sec:relatedwork} describes related work and finally our conclusions are presented in Section \ref{sec:conclusions}.
+In Section \ref{sec:design} we review the design of MELON, the operations it provides, and our prototype implementation. We compare shared whiteboard implemented with different paradigms in Section \ref{sec:wb} and then measure performance of each paradigm in Section \ref{sec:comparison}. Section \ref{sec:relatedwork} describes related work and finally our conclusions are presented in Section \ref{sec:conclusions}.
 
 \section{MELON Design}\label{sec:design}
 
-The MELON communication paradigm borrows the idea of a distributed shared message store from Linda\cite{linda} and LIME\cite{lime}. The concept of tuple spaces - shared collections of messages which may be manipulated by many processes - fits well in a MANET context. To send a message, a process stores it in a globally shared memory ``space". Messages are retrieved by matching them against desired templates. This decoupling between sending and receiving is beneficial in a MANET context, where maintaining connections between hosts can be challenging. With tuple spaces, disconnections no longer cause disruptions to communications, only delays in retrieving messages.
+The MELON communication paradigm borrows the idea of a distributed shared message store from Linda\cite{linda} and LIME\cite{lime}. The concept of tuple spaces - shared collections of messages which may be manipulated by many processes - fits well in a MANET context. To send a message, a process stores it in a globally shared memory ``space". Messages are retrieved by matching them against templates describing message content. This decoupling between sending and receiving is beneficial in a MANET context, where maintaining connections between hosts can be challenging. With tuple spaces, disconnections no longer cause disruptions to communications, only delays in message retrieval.
 
 However, aside from the shared message store, MELON departs significantly from typical tuple spaces in its operations and semantics. In a tuple space, any message may be read or removed by any process, and any matching message may be retrieved in any order. For non-destructive reads, the same tuple may be returned multiple times. In contrast, MELON divides the messages into two pools: a remove-only pool, and a read-only pool. Remove-only messages can only be retrieved once and must be removed when retrieved. Read-only messages may never be explicitly removed, they can only be copied from the message store. Messages are returned in a per-host ordering, although which host returns a matching message remains nondeterministic.
 
@@ -72,7 +72,7 @@ Operations are split into read-only (\textbf{write}/\textbf{read}/\textbf{read\_
 
 When called, \textbf{store} saves a copy of the message in the message store. Messages saved with \textbf{store} may only be retrieved with a \textbf{take} or \textbf{take\_all} operation. If an address is provided, then only the host with a matching identity can remove the message.
 
-The \textbf{write} operation also stores a single message in the message store, but the message may only be copied from the storage space with a \textbf{read} operation, never explicitly removed. Messages written with the \textbf{write} operation may be automatically garbage collected.
+The \textbf{write} operation also stores a single message in the message store, but the message may only be copied from the storage space with a \textbf{read} operation, never explicitly removed. Messages stored with either operation may be automatically garbage collected.
 
 A \textbf{take} operation requires a message template as the first argument and an optional boolean for the second argument. The message template is matched against available messages in the message store which were added with a \textbf{store} operation. If a matching message is found, it will be removed from the message store and returned. Once a message has been returned by a \textbf{take} operation, it may not be returned by a subsequent operation in any process.
 
@@ -119,7 +119,7 @@ end
 \label{fig:newsreader}
 \end{table}
 
-Table \ref{fig:newsreader} demonstrates a use of \textbf{read\_all}. One or more processes generate news messages containing a news category and headline. To ensure all interested parties can read the news, the server uses \textbf{write} to disallow a reader from removing a news item and preventing other readers from reading it. Any number of processes can consume the news as readers. The \texttt{fetch} method in Table \ref{fig:readprocesses} uses \textbf{read\_all} to return all news items in a given category. Repeated calls to \texttt{fetch} will only return news items not previously seen.
+Table \ref{fig:newsreader} demonstrates a use of \textbf{read\_all}. One or more processes generate news messages containing a news category and headline. To ensure all interested parties can read the news, the server uses \textbf{write} to disallow a reader from removing a news item and preventing other readers from reading it. Any number of processes can consume the news as readers. The \texttt{fetch} method in Table \ref{fig:readprocesses} uses \textbf{read\_all} to return all news items in a given category. Repeated calls to \texttt{fetch} will only return news items not previously read.
 
 By default, all retrieval operations will block the application until at least one matching message is found. The operations can also be performed in nonblocking mode, in which case \textbf{take} and \textbf{read} return null when no matching message is found, while \textbf{take\_all} and \textbf{read\_all} return empty collections.
    
@@ -142,11 +142,11 @@ For \textbf{read} and \textbf{read\_all} operations, it is necessary to track wh
 
 \section{Shared Whiteboard Example}\label{sec:wb}
 
-A shared whiteboard is a digital document which may be edited and viewed by multiple users concurrently and is commonly proposed as an example of an application well-suited to MANETs\cite{wb5}\cite{wb6}. It is distributed, real-time, and allows participants to share information. It also presents some interesting characteristics. Since many participants may be updating the whiteboard, ordering of changes is very important to maintain a consistent document. It is also important that changes be propagated quickly so that each user is working with the latest document.
+A shared whiteboard is a digital document which may be edited and viewed by multiple users concurrently and is commonly proposed as an example of an application well-suited to MANETs\cite{wb5}\cite{wb6}. Shared whiteboards are distributed, real-time, and interactive, which presents some interesting characteristics. Since many participants may be updating the whiteboard, ordering of changes is very important to maintain a consistent document. It is also important that changes be propagated quickly so that each user is working with the latest document.
 
 We have implemented a shared whiteboard in MELON, publish/subscribe, RPC, and tuple spaces using JRuby (a Java implementation of the Ruby language) in order to compare their features and performance.
-Each version shares common code related to the actual whiteboard itself, which is implemented in the Whiteboard class.
-Changes to the shared whiteboard are encapsulated in a Figure object. Each version implements an \texttt{add\_local\_figure} method which is called when the user modifies the shared whiteboard.
+Each version shares common code related to the actual whiteboard itself, which is implemented in the \texttt{Whiteboard} class.
+Changes to the shared whiteboard are encapsulated in a \texttt{Figure} object. Each version implements an \texttt{add\_local\_figure} method which is called when the user modifies the shared whiteboard.
 The MELON and tuple space versions also implement an \texttt{add\_remote\_figures} method which is used to retrieve updates from remote nodes.
 
 \subsection{Publish/Subscribe}
@@ -177,8 +177,8 @@ class PSWhiteboard < Whiteboard
   end
 end
 \end{verbatim}
-\caption{Publish/Subscribe Whiteboard}
-\end{minipage}\label{fig:pswb}
+\caption{Publish/Subscribe Whiteboard}\label{fig:pswb}
+\end{minipage}
 &
 \begin{minipage}{2.5in}
 \begin{verbatim}
@@ -199,8 +199,8 @@ end
 
 
 \end{verbatim}
-\caption{RPC Whiteboard}
-\end{minipage}\label{fig:rpcwb}
+\caption{RPC Whiteboard}\label{fig:rpcwb}
+\end{minipage}
 \end{tabular}
 \end{table}
 
@@ -209,17 +209,17 @@ end
 
 Remote procedure calls (RPC) is a distributed programming paradigm which disguises remote communication as local method calls. A host can ``export" an object to be accessed remotely. Remote hosts discover these remote objects by name and then invoke methods on them. Arguments may be passed to the remote method and the return value of the method is returned to the local process. A variation of this used in our example is group RPC, which allows us to invoke the same method with the same arguments on all known remote objects of the requested type. These calls are performed asynchronously. Typically the return values would be handled by a callback, but this functionality is not used in our example.
 
-A shared whiteboard implementation using RPC is listed in Table \ref{fig:rpcwb}. When the whiteboard is initialized, it is also exported as a remote object. This allows other hosts to remotely invoke the \texttt{add\_figure}. Like publish/subscribe, this allows the whiteboard to accept remote figures asynchronously from the main process thread and is a natural feature of RPC. Distribution of remote figures is performed by first finding all remote instances of \texttt{RPCWhiteboard}, then invoking the \texttt{add\_figure} method (defined on the parent class) directly, passing in the new figure as an argument. Since the group RPC is asynchronous, it is possible that a call might complete before a prior call.
+A shared whiteboard implementation using RPC is listed in Table 5. When the whiteboard is initialized, it exports itself as a remote object. This allows other hosts to remotely invoke the \texttt{add\_figure}. Like publish/subscribe, this allows the whiteboard to accept remote figures asynchronously from the main process thread and is a natural feature of RPC. Distribution of remote figures is performed by first finding all remote instances of \texttt{RPCWhiteboard}, then invoking the \texttt{add\_figure} method (defined on the parent class) directly, passing in the new figure as an argument. Since the group RPC is asynchronous, it is possible that a call might complete before a prior call.
 
 \subsection{Tuple Spaces}
 
-Tuple spaces operate on a distributed shared memory space full of ordered tuples. Tuples may be output using the \textbf{out} operation, then retrieved using \textit{rd}, which copies the tuple, or \textit{in}, which removes the tuple from the tuple space based on matching templates. If multiple tuples match a template, one of the matching tuples is chosen nondeterministically to be returned.
+Tuple spaces operate on a distributed shared memory space of ordered tuples. Tuples may be output using the \textbf{out} operation, then retrieved using \textbf{rd}, which copies the tuple, or \textbf{in}, which removes the tuple from the tuple space based on matching templates. If multiple tuples match a template, one of the matching tuples is chosen nondeterministically to be returned.
 
 Table \ref{fig:tswb} shows the tuple space version, which is very similar to MELON. To send an update, it outputs a tuple containing just the new figure. Unlike MELON, a misbehaving or misconfigured client could remove the messages from the tuple space, disrupting the shared whiteboard communication. Retrieval of remote messages uses a \textbf{bulk\_rd} operation to read all messages containing a figure. To continuously retrieve messages asynchronously, this method can be called inside a loop in a separate thread. Once a group of figures is retrieved, each individual figure is added to the local whiteboard. 
 
-Tuple spaces suffer from the multiple read problem\cite{mrdp}: repeated nondestructive read operations (\textbf{rd}) may return any matching tuple, including the same tuple. As discussed in \cite{mrdp}, one solution is to use a mutex tuple to gain exclusive access to the tuple space, remove all the desired tuples using \textbf{in}, then replace all the tuples and release the mutex. However, this approach removes all concurrent access and is dangerous in a MANET where the node holding the mutex may disappear. Another solution is to use a counter in each tuple, then read tuple 0, then tuple 1, and so on. Then each process can request tuples by the counter value. However, if multiple processes are producing tuples they must coordinate to produce consistent counters, essentially resulting in a producer-side mutex.
+Tuple spaces suffer from the multiple read problem\cite{mrdp}: repeated nondestructive read operations (\textbf{rd}) may return any matching tuple, including the same tuple. As discussed in \cite{mrdp}, one solution is to use a mutex tuple to gain exclusive access to the tuple space, remove all the desired tuples using \textbf{in}, then replace all the tuples and release the mutex. However, this approach prevents concurrent access and is dangerous in a MANET where the node holding the mutex may disappear. Another solution is to use a counter in each tuple, then read tuple 0, then tuple 1, and so on. Then each process can request tuples by the counter value. However, if multiple processes are producing tuples they must coordinate to produce consistent counters, essentially resulting in a producer-side mutex.
 
-Finally, \cite{mrdp} proposes a \textbf{copy-collect} operation, which copies all matching tuples. We have implemented this as the \textbf{bulk\_rd} operation as used in Table \ref{fig:tswb}. However, this does not solve what might be termed the ``multiple multiple read problem": since our tuple space is not static, reading all matching tuples once is not sufficient. We need to be able to perform multiple \textbf{bulk\_rd}s to get all figures added to the whiteboard. Without \textit{a prior} knowledge of remote hosts in the system, the only option which allows concurrent access to the tuple space is to read \textit{all} matching tuples. Naturally, this is quite expensive as the number of tuples grows. 
+Finally, \cite{mrdp} proposes a \textbf{copy-collect} operation, which copies all matching tuples. We have implemented this as the \textbf{bulk\_rd} operation as used in Table \ref{fig:tswb}. However, this does not solve what might be termed the ``multiple multiple read problem": since our tuple space is not static, reading all matching tuples once is not sufficient. We need to be able to perform multiple \textbf{bulk\_rd}s to get all figures added to the whiteboard. Without \textit{a prior} knowledge of remote hosts in the system, the only option which allows concurrent access to the tuple space is to read \textit{all} matching tuples. Naturally, this becomes quite expensive as the number of tuples grows. 
 
 \begin{table}
 \centering
@@ -247,8 +247,8 @@ class MelonWhiteboard < Whiteboard
   end
 end
 \end{verbatim}
-\caption{MELON Whiteboard}
-\end{minipage}\label{fig:mwb}
+\caption{MELON Whiteboard}\label{fig:mwb}
+\end{minipage}
 &
 \begin{minipage}{2.5in}
 \begin{verbatim}
@@ -273,8 +273,8 @@ class TSWhiteboard < Whiteboard
   end
 end	
 \end{verbatim}
-\caption{Tuple Space Whiteboard}
-\end{minipage}\label{fig:tswb}
+\caption{Tuple Space Whiteboard}\label{fig:tswb}
+\end{minipage}
 \end{tabular}
 \end{table}
 
@@ -296,17 +296,17 @@ Tuple spaces and MELON are both pull-based paradigms and provide message persist
 
 \subsection{Implementation}
 
-For these experiments, we implemented the shared whiteboard as described in Section \ref{sec:wb} in the four paradigms using the same codebases as in \cite{melon}. To make the comparison as fair as possible, each paradigm shares a considerable amount of common code and utilizes ZeroMQ for network communications.The tuple space implementation uses LighTS\cite{lights} local tuple space library from LIME.
+For these experiments, we implemented the shared whiteboards as described in Section \ref{sec:wb} in the four paradigms using the same codebases as in \cite{melon}. To make the comparison as fair as possible, each paradigm shares a considerable amount of common code and utilizes ZeroMQ for network communications.The tuple space implementation uses the LighTS\cite{lights} local tuple space library from LIME.
 
 \subsection{Setup}
 
 To evaluate the implementations in a MANET environment, we used EXata\cite{exata} to provide high-fidelity wireless models and precisely repeatable scenarios while allowing us to run real applications. Our scenario uses 50 nodes with 802.11b radios using AODV\cite{aodv}, moving using random waypoint with a maximum speed of 5m/s in a 500x500 meter area. The two-ray path loss model is used. To measure how the implementations fared in turbulent network conditions, we ran the experiments with increasing levels of packet loss. It is also worth noting we used an experiment coordination framework written in MELON to manage running the applications, starting and stopping EXata, and collating the results.
 
-In our scenario, six nodes are running the whiteboard application, the rest function only as intermediate nodes. For each experiment, each of the six nodes sends 50 whiteboard updates with pauses of 5-10 seconds. This roughly models each user updating their whiteboard continuously for 4-8 minutes.
+In our scenario, six nodes are running the whiteboard application, the rest function only as intermediate nodes. For each experiment, each of the six nodes sends 50 whiteboard updates with pauses of 5-10 seconds. This roughly models each user updating their whiteboard at a brisk pace for 4-8 minutes.
 
 \subsection{Results}
 
-For each implementation, we measured the number of messages lost, the number of messages received out of order, and the message latency. For out-of-order messages, we divided it into two metrics: host out-of-order and global out-of-order. Host out-of-order messages are messages from a single host which are not received in the order sent. Global out-of-order messages are those received before their preceding message. For example, if node A receives a message \textit{m}$_{1}$, then sends \textit{m}$_{2}$, but node B receives \textit{m}$_{2}$ prior to \textit{m}$_{1}$, \textit{m}$_{2}$ will be considered out of order.
+For each implementation, we measured the number of messages lost, the number of messages received out of order, and the message latency. For out-of-order messages, we divided it into two metrics: host out-of-order and global out-of-order. Host out-of-order messages are messages from a single host which are not received in the order sent. Global out-of-order messages are those received before their preceding message. For example, if node A receives a message \textit{m}$_{1}$ from node B, then sends \textit{m}$_{2}$. If node C receives \textit{m}$_{2}$ prior to \textit{m}$_{1}$, \textit{m}$_{2}$ will be considered out of order.
 
 \begin{figure}[ht]
 \centering
@@ -338,7 +338,7 @@ For each implementation, we measured the number of messages lost, the number of 
 \end{minipage}
 \end{figure}
 
-In our experiments, messages from a single host were generally delivered in the order they were sent as shown in Figure \ref{fig:hooo}. For MELON and tuple spaces, no messages were delivered out of order. However, it should be noted that for tuple spaces this is an implementation accident, whereas in MELON it is guaranteed. In LighTS, tuples are sequentially stored locally in an array in the order they are output, then returned in that same order when they are matched. Tuple spaces in general do not return matched messages in any particular order.
+In our experiments, messages from a single host were generally delivered in the order they were sent as shown in Figure \ref{fig:hooo}. For MELON and tuple spaces, no messages were delivered out of order. However, it should be noted that for tuple spaces this is an accident of the implementation, whereas in MELON it is guaranteed. In LighTS, tuples are sequentially stored locally in an array in the order they are output, then returned in that same order when they are matched. Tuple spaces in general do not return matched messages in any particular order.
 
 In this application, RPC is used in an asynchronous manner since it is providing group communication. If one call is delayed, it is possible a subsequent call will complete before a prior one, which explains why RPC delivers a small number of messages out of order. Publish/subscribe is fully asynchronous and incoming publications can even be processed concurrently. However, even in the worst case publish/subscribe delivers 97.8\% of the messages from a host in the order they were sent. Unfortunately, like tuple spaces this is just the result of a single implementation and the RPC and publish/subscribe paradigms make no promises about the ordering of messages. 
 
@@ -346,11 +346,11 @@ Unlike per-host ordering, many messages were delivered out of order from a globa
 
 Our results show publish/subscribe performs the best for this metric. Indeed, ordering is largely dependent on deliveries completing quickly before later messages overtake them. As shown in Figure \ref{fig:latency}, publish/subscribe is an extremely quick method for delivering messages, so it excels in ordering as well. Conversely, tuple spaces fare the worst, delivering 67\% of messages out of order. Again, because tuple spaces provide no way of controlling which matches messages are returned or in what order, the whiteboard implementation must transfer large amounts of tuples in order to nondestructively read all matching messages. This is extremely slow, as reflected in Figure \ref{fig:latency}.
 
-MELON and RPC perform about the same for global ordering, although MELON is more affected when the network conditions worsen. This is likely due to MELON's reliable message delivery (Figure \ref{fig:delivery}), since some messages may be delayed significantly by broken network routes or even network partitioning. In contrast, losing messages can improve ordering since a message not delivered cannot be out of order. Of the paradigms compared, MELON is the only one to demonstrate 100\% message delivery. Tuple spaces would also be expected to be reliable, but again in this application it is required to deliver large amounts of messages. Given that the median latency for tuple spaces reached a full minute, the experiment completed before some messages arrived.
+MELON and RPC perform about the same for global ordering, although MELON is more affected when the network conditions worsen. This is likely due to MELON's reliable message delivery (Figure \ref{fig:delivery}), since some messages may be delayed significantly by broken network routes or network partitioning. In contrast, losing messages can improve ordering since a message not delivered cannot be out of order. Of the paradigms compared, MELON is the only one to demonstrate 100\% message delivery. Tuple spaces would also be expected to be reliable, but again in this application it is required to deliver large amounts of messages. Given that the median latency for tuple spaces reached a full minute, the experiment completed before some messages arrived.
 
-While we have seen publish/subscribe have low delivery ratios in the past\cite{collins2010quantitative}, here it performs well in the lossy environment due to its quick delivery rates, but still dropped 1.4\% of messages when the network connectivity was good. RPC performs predictably, slowing losing more messages as the network degrades. Again, we are using group RPC, which means it does not know how many receives may be available and therefore does not retry to complete calls if a host cannot be reached for a period of time. Fully synchronous RPC it would block the process until the message is delivered. However, that would also delay deliveries considerably which is not acceptable for a whiteboard application.
+While we have seen publish/subscribe have low delivery ratios in the past\cite{collins2010quantitative}, here it performs well in the lossy environment due to its quick delivery rates, but still dropped 1.4\% of messages when the network connectivity was good. RPC performs predictably, slowing losing more messages as the network degrades. Again, we are using group RPC, which means the application is not aware of how many receivers may be available and therefore does not retry to complete calls if a host cannot be reached for a period of time. Fully synchronous RPC would block the process until the message is delivered. However, that would also delay deliveries considerably which is not acceptable for a whiteboard application.
 
-Figure \ref{fig:latency} shows delivery latency. Since tuple spaces are so much slower, the results are correlated to the right-hand y-axis which is an order of magnitude higher. Publish/subscribe was extremely quick, which is typical since it requires no message confirmations nor active discovery of remote hosts. RPC was also quite fast until it was slowed down along with the other paradigms by the 30\% packet loss.
+Median time between sending and receiving a message is reported in Figure \ref{fig:latency}. Since tuple spaces are so much slower, the results are aligned with the right-hand y-axis which is an order of magnitude higher. Publish/subscribe was extremely quick, which is expected since it requires no message confirmations nor active discovery of remote hosts. RPC was also quite fast until it was slowed down along with the other paradigms by the 30\% packet loss.
 
 Logically, delivery rates and latency are directly related. With reliable delivery some messages may be very late, increasing overall latency. On the other hand, dropped messages do not count towards the latency metric, so a lossy communication paradigm can appear to be very fast. MELON errs on the side of reliability, and therefore is a bit slower as the network becomes less reliable and more delivery attempts are required. There is an additional trade-off that pull-based paradigms like MELON and tuple spaces must make, which is the frequency of the pull attempts. Publish/subscribe and RPC may send as soon as a message is ready, but MELON and tuple spaces must continually poll to receive messages. Faster polling results in faster message delivery, but higher overall network usage, collisions and resource monopolization.
 
