@@ -1,0 +1,105 @@
+\documentclass [PhD] {uclathes}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{epsfig}
+\usepackage{cite}
+\usepackage{verbatim}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% \input {mymacros}                         % personal LaTeX macros
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Usually things live in separate flies.
+%
+% \input {prelim}                           % preliminary page info
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                      %
+%                          PRELIMINARY PAGES                           %
+%                                                                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title          {Communication Paradigms for Mobile Ad Hoc Networks}
+\author         {Justin Scott Collins}
+% Note: department is really your area of research.  I.e. leave out 'Department of'.
+\department     {Computer Science}
+% Note:  degreeyear should be optional, but as of  5-Feb-96
+% it seems required or you get a year of ``2''.   -johnh
+\degreeyear     {2014}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chair          {Rajive Bagrodia}
+\member         {Co-chair 3 name}
+\member         {Co-chair 2 name}
+\member         {Co-chair 1 name}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\dedication     {\textsl{}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\acknowledgments {(Acknowledgments omitted for brevity.)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%
+% UCLA Policy on Vita
+% For security reasons, UCLA policy specifies that your birth year and birth place should not be included in your vita.
+%
+\vitaitem   {2002--2006}
+                {Law School Helpdesk Specialist,
+                Seattle University, Seattle, Washington.}
+\vitaitem   {2006}
+                {B.S.~(Computer Science),
+                Seattle University}
+\vitaitem   {2007--2010}
+                {Graduate Student Researcher, Computer Science Department, UCLA.}
+\vitaitem   {2010-2012}
+                {Security Engineer, AT\&T Interactive, Glendale, California}
+\vitaitem   {2012--present}
+                {Security Engineer, Twitter, Inc., San Francisco, California}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\publication    {J. Collins and D. Joslin. "Improving genetic algorithm performance with intelligent mappings from chromosomes to solutions." In Proc. of the 8th Annual Conference on Genetic and Evolutionary Computation (GECCO '06) (Seattle, Washington, USA, July 08 - 12, 2006).}
+
+\publication    {D. Joslin and J. Collins. "Greedy transformation of evolutionary algorithm search spaces for scheduling problems." IEEE Congress on Evolutionary Computation, 2007 (CEC 2007).}
+
+\publication    {Justin Collins and Rajive Bagrodia. "Programming in Mobile Ad Hoc Networks." In Proceedings of the Fourth International Wireless Internet Conference (WICON 2008).}
+
+\publication    {Justin Collins and Rajive Bagrodia. "A Quantitative Comparison of Communication Paradigms for MANETs." In Proc. of the 7th International ICST Conference on Mobile and Ubiquitous Systems: Computing, Networking and Services (MobiQuitous 2010).}
+
+\publication    {Justin Collins and Rajive Bagrodia. "MELON: A Persistent Message-Based Communication Paradigm for MANETs." In Proc. of the 10th International ICST Conference on Mobile and Ubiquitous Systems: Computing, Networking and Services (MobiQuitous 2013).}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\abstract {
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\begin {document}
+\makeintropages
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input {intro}
+\input {communication_paradigms}
+\input {analysis_of_existing}
+\input {melon_model}
+\input {melon_implementation}
+\input {case_studies}
+\input {evaluation}
+\input {conclusion}
+
+\bibliography {refs}    % bibliography references
+\bibliographystyle {uclathes} % or uclathes??
+
+\end {document}
+

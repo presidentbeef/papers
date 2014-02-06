@@ -1,0 +1,74 @@
+\chapter{Communication Paradigms for MANETs}
+
+Most existing work involves adapting an existing distributing computing paradigm to the MANET context.
+
+\section{Mobile Ad Hoc Network Characteristics}
+
+\section{Requirements}
+
+\subsection{Disconnection Handling}
+
+Due to the unreliability of wireless communication and the ability of nodes to physically move, applications in MANETs can experience frequent disconnections.
+Unlike traditional distributed computing, which typically views disconnections as exceptional events and errors, applications in MANETs must be able to handle disconnections as part of their normal operation.
+
+In a MANET, nodes are highly mobile and disconnections occur frequently, either due to channel condition variation or the mobility of destinations and intermediate nodes. Disconnections may be prolonged, brief, or intermittent and applications must handle all three. Traditional networking treats disconnections as failures, but a programming environment for MANETs needs to handle disconnections as a natural element of the environment.
+
+\subsection{Addressing and Discovery}
+
+ The lack of infrastructure in a MANET requires a decentralized method for finding and addressing resources. Traditional approaches such as DNS cannot be maintained in a MANET, so alternative means of discovering and addressing resources must be provided. The spontaneous nature of MANETs also dictates that discovery be dynamic, as the network topology cannot be known ahead of time and may change rapidly.
+
+Unlike a wired network with a fixed infrastructure, MANETs cannot depend on centralized look up services like DNS to find peers. Since devices are constantly joining and leaving the network and it is not possible to maintain IP addresses or URLs to locate resources, applications must be able to locate them dynamically.
+
+\subsection{Flexible Communication}
+
+Basic communication between devices in a wired network is generally accomplished in a one-to-one unicast manner. However, in a MANET, group communication is also common due to the broadcast nature of wireless networking and bandwidth limitations. Collaborative applications, networked games, and streaming media also benefit from group communication.
+
+In order to support generic application development, any communication paradigm needs to support both unicast and multicast communication.
+
+ Both unicast and multicast communications are common in MANET applications, which are often group-based or collaborative. Providing flexible communication is crucial to developing applications for MANETs.
+
+\section{Middleware and Languages for MANETs}
+
+Work in this area has mostly focused on adapting existing distributed computing paradigms to the mobile ad hoc environment. Three such paradigms are publish/subscribe, remote procedure calls, and tuplespaces.
+
+It is useful to describe these communication paradigms in terms of temporal and referential (or spatial) coupling~\cite{distbook}. When a paradigm is temporally coupled, it requires the sender and the receiver to both be present when the message is sent. If it is temporally decoupled, a message will be stored and then delivered when the receiver becomes available. Referential coupling indicates whether or not the sender and receiver need to be directly aware of each other. A referentially coupled system explicitly addresses receivers, while a referentially uncoupled system does not need to know with which nodes it is communicating. 
+
+Both temporal and referential uncoupling are preferred in a MANET. If a paradigm is temporally uncoupled, it is more likely to be able to handle disconnections and changing network topologies. Referential uncoupling is useful, because it avoids the need for a centralized naming system and allows remote resources to be addressed using application-level semantics, rather than having to drop down to the network layer.
+
+\subsection{Publish/Subscribe}
+
+Publish/subscribe is a messaging system in which nodes may subscribe to various topics. Nodes publish messages to certain topics, which are then delivered to nodes subscribed to that topic. Typically, there is a system of fixed nodes which serve as \textit{brokers} which manage subscriber lists and delivery of messages. However, the brokering system is completely transparent to the application layer, which is only able to subscribe to topics and publish messages. This maintains the referential decoupling that publish/subscribe systems provide. Published messages may or may not be persistent, depending on the implementation.
+
+Publish/subscribe is completely oriented towards group communication. The only method of communication is publishing a message to a topic. There may be zero or more subscribers to that topic, all of which will receive the message, provided the subscribers are available. One-to-one communication can only be achieved by coordination at the application layer. For example, two nodes may agree to communicate via a topic which they assume no one else will use.
+
+STEAM (Scalable Timed Events and Mobility)\cite{steam} is an example of an event-based middleware which uses publish/subscribe for communication. REDS (REconfigurable Dispatching System) is a framework for building publish/subscribe systems in highly dynamic networks.
+
+\subsection{Remote Procedure Call}
+
+Remote procedure call (RPC) is a form of message passing in which remote procedures or method invocations are syntactically similar or identical to local function calls, but the code is actually executed on a remote machine. When the procedure is called, arguments are copied to the remote machine, which executes the requested method and sends the resulting value back to the local machine. Like publish/subscribe, RPC is temporally coupled, since remote methods must be available at the time of the call. However, RPC is referentially uncoupled, since the application does not know which node it is communicating with, only that it supports a given method.
+
+RPC inherently supports one-to-one two-way communication. Arguments to a method can be considered sending a message, and the return value of the method can be thought of as sending a reply message. RPC can also support group communication by invoking a given method on multiple remote hosts.
+
+Many-to-Many Invocation (M2MI)\cite{m2mi} is an RPC implementation for MANETs which avoids costly ad hoc routing and discovery by broadcasting messages. Messages are addressed by object type, so if a device hosts an object of the addressed type, it will pass the message to that object.
+
+The advantage of M2MI is simplicity. As messages are simply broadcast without expectation of reply, there is no need to worry about return values or blocking while waiting for confirmation. At the language level, there is no difference on the sender's side between a message which is actually received and one which is not received by anyone. Though this provides simplicity, it also means more work for the programmer. As there is no guarantee of message delivery, any functionality beyond simple unidirectional message passing must be implemented on top of M2MI.
+
+AmbientTalk\cite{ambienttalk} is a complete object oriented language inspired in part by M2MI's message passing. AmbientTalk implements a higher level abstraction of resource discovery and disconnection handling which is absent from M2MI, but retains the idea of object handles and remote method invocations. All remote events are handled asynchronously by AmbientTalk through the registration of callbacks. A block of code may be registered to be invoked when discovering a certain resource type. AmbientTalk also adds the ability to receive values from method invocations on remote objects through the use of futures. By default, messages sent to remote objects are buffered until they can be sent. The programmer can also choose to break the connection and recall buffered messages.
+
+\subsection{Tuple Spaces}
+
+Tuple spaces are a form of distributed shared memory. Conceptually, ordered tuples with typed fields are written out to a shared memory space. The tuples can then be read or retrieved by matching them to templates. Applications are associated with one or more tuple spaces, which allows them to access any tuples stored in that space. Three basic operations are defined to manipulate the tuple space: \textit{in()}, \textit{out()}, and \textit{rd()}, which take, write, and read tuples from the shared tuple space. \textit{in()} and \textit{rd()} use tuple templates which are matched against available tuples. There are also non-blocking versions of \textit{in()} and \textit{rd()} called \textit{inp()} and \textit{rdp()} which return immediately even if there are no matching tuples.
+
+Tuple spaces are both temporally and referentially uncoupled. Tuples may be read any time after they have been written to the tuple space, provided they have not been removed in the meantime. Where a tuple may reside is completely unknown to the application; all communication is performed by requesting a tuple matching a particular template. Tuple spaces easily support group communication, since a single tuple may be read by any number of nodes. One-to-one communication can be achieved by agreement on a particular tuple field, although this does not guarantee unintended receivers will not read or even remove the tuple.
+
+LIME (Linda in mobile environment)~\cite{lime} is a well-established implementation of tuple spaces\cite{linda} for mobile environments. Each device or agent has its own tuple space, which can merge with remote tuple spaces when they come into range of each other. Tuples can be read and written from specific locations, but can also be read or written to the ``federated" tuple space which includes the local tuple space and any tuple spaces which are currently merged with it. However, the tuple will reside in a particular tuple space, so when that device or agent moves away, the tuples in that tuple space will move with it and be out of reach. LIME does not currently have an implementation intended for mobile devices smaller than laptops, though there are variations of LIME intended for sensors.
+
+MESH\textit{Mdl}~\cite{meshmdl}  is another tuple space implementation, but varies slightly from the LIME model. In MESH\textit{Mdl}, there is a single tuple space shared between all applications on a device. All communication between applications is performed via  this shared tuple space. Remote tuple spaces are not shared like in LIME, but are accessible for reads and writes only: it is not possible to remove tuples from a remote tuple space. MESH\textit{Mdl} supports mobile agents and recommends using them if actions need to be performed on a remote tuple space. MESH\textit{Mdl} also adds the idea of being able to automatically write, read, or block tuples from other tuple spaces.
+
+Tuples on the Air (TOTA)~\cite{tota}  also implements a tuple space for MANETs, but differs from LIME and MESH\textit{Mdl}. Rather than storing tuples on a particular device, tuples in TOTA are propagated through the network according to rules specified per tuple. As the tuples move through the network, they can acquire context information about the network, such as how many hops they have traveled from the source.
+
+\subsection{Mobile Agents}
+
+Using mobile agents in MANETs allows programs to move code to data, rather than communicating the data to the running program. Code migrates to where data or resources are located, executes at that location, and then returns to its original location to report the results. This allows mobile devices, which usually have little processing power, to offload computationally intensive work to machines with more processing and power resources.
+
+SpatialViews\cite{sv} is a language extension to Java ME which allows programs to iterate over groups of devices. The code inside the loop is executed on the initial device and then migrates to the next, eventually making its way back to the initial node. This allows for complex operations to be written easily, as the language has built-in support for such things actions as reduction operations. The iteration itself is generally done according to some physical layout, although it is possible to iterate over all objects or to use logical locations instead.

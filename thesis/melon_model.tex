@@ -1,0 +1,115 @@
+\chapter{MELON Coordination Model}
+
+\section{Overview}
+
+The design of MELON is centered around a distributed shared message store. Each device in the network may host any number of applications which access and contribute to the shared message store. Each application hosts a local message store which may be accessed by any other local or remote application. Applications request messages (which may be stored locally or remotely) using message templates.
+
+By communicating through a shared message store, the concept of a connection between hosts is eliminated and thus disconnections are no longer an issue at the application layer. A host suddenly leaving the network does not disrupt an application and applications do not need to handle a communication operation returning an error or failing due to intermittent network connectivity or physical wireless interference. The application is effectively insulated from these issues by the nature of the paradigm and the semantics of the operations.
+
+Since messages are exchanged through a shared message store, messages are sent and received asynchronously with no need for a persistent connection. This provides temporal decoupling between hosts, since messages can still be delivered even after prolonged disconnections.
+
+Due to the dynamic network topology of MANETs, maintaining any type of logical or overlay network structure becomes challenging, so MELON does not rely on a particular network structure. Discovery of available messages is performed dynamically for each operation. While this does increase the amount of communication required for each operation, it removes the need for global state and allows the network to change at any time.
+
+MELON also provides spatial decoupling (where the sender and receiver need not be aware of each other) by matching messages based on content, rather than by a host address or location. The messages themselves may physically reside on any host in the network. The sender of a message is not aware of the receivers' identities nor even how many receivers might read a message. This frees applications from tracking remote addresses or contacting a directory service to find remote resources.
+
+The shared wireless communication medium in MANETs is well-suited to group or multicast communications. MELON supports multicast communication by allowing any number of receivers to read the same message. MELON also provides bulk receives, which allow applications to efficiently receive multiple messages from multiple hosts in a single operation.
+
+Applications often require point-to-point or unicast communication as well. While unicast communication can be accomplished through by storing regular messages in MELON, this communication can easily be disrupted by a process removing a message intended for a different receiver. Additionally, it is possible to eavesdrop on messages unnoticed by reading a message and not removing it. For applications such as instant messaging, it is important to have private unicast communication. In MELON, messages may be directed to a specific receiver when stored to ensure the messages are only taken by the intended recipient.
+
+MELON also includes features uncommon to shared message stores to further simplify application development in MANETs. First, messages are returned in first-in first-out order per host. When a host receives a message request, it returns the oldest matching message in its local storage. In applications where a single host generates the majority of the messages, this eliminates the need to order messages on the receiver side.
+
+Secondly, MELON provides operations to only read messages which were not previously read by the same process. This enables an application to read all matching messages currently in the message store, then read only newly-added messages in subsequent operations. It also prevents an application from reading the same message twice.
+
+Lastly, MELON differentiates between messages which are meant to persist and be read by many receivers versus messages intended to be removed from the message store. For example, messages in a news feed would have many readers, but the messages themselves should not be removed. On the other hand, a job queue expects each job to be removed by exactly one worker. MELON provides operations to support both of these scenarios.
+
+\section{Message Store Model}
+
+\section{MELON Operations Overview}
+
+\begin{table}
+\centering
+\caption{Operations Summary}
+\begin{tabular}{|c|c|c|c|} \hline
+& Add single message & Retrieve single message & Retrieve many messages \\ \hline
+Nondestructive retrieval & \textbf{write} & \textbf{read} & \textbf{read\_all} \\ \hline
+Destructive retrieval & \textbf{store} & \textbf{take} & \textbf{take\_all} \\ \hline
+\end{tabular}
+\label{table:opsummary}
+\end{table}
+
+Messages can be copied to the shared message store via a \textbf{store} or \textbf{write} operation. A \textbf{store} operation allows the message to later be removed from the storage space. Messages saved with a \textbf{write} operation cannot be explicitly removed from the storage space, only copied.
+
+Messages added via \textbf{store} may be retrieved by a \textbf{take} operation using a message template which specifies the content of the message to be returned. A \textbf{take} operation will remove a message with matching content from the message store and return it to the requesting process. \textbf{take} operations are atomic: a message may only ever be returned by a single \textbf{take} operation.
+
+A \textbf{read} operation will also return a message matching a given template, but does not remove the original message from the shared storage. Any number of processes may read the same message. However, repeated applications of a \textbf{read} operation in the same process will never return the same message. Only messages stored with \textbf{write} can be returned by a \textbf{read} operation.
+
+The basic \textbf{take} and \textbf{read} operations return a single message per invocation. To facilitate the exchange of multiple messages, MELON includes the bulk operations \textbf{take\_all} and \textbf{read\_all}. The bulk versions operate the same as the basic operations, except all available matching messages will be returned instead of a single message. For \textbf{read\_all}, only messages which were not previously returned by a \textbf{read} or \textbf{read\_all} in the same process will be returned.
+
+By default \textbf{take}, \textbf{take\_all}, \textbf{read}, and \textbf{read\_all} will block the process until a matching message is available. MELON also provides non-blocking versions of these operations. The non-blocking operations will return a null value if no matching messages can be found.
+
+When a message is saved with a \textbf{store} operation, it may optionally be directed to a specific receiver. In a directed message, the identity of a receiver is included in the message as the addressee. Only the addressee may access a directed message through a \textbf{take}.
+
+Due to the limited resources of most devices in a mobile network, storage space in MELON is explicitly bounded. Any message may be garbage collected prior to being removed by a \textbf{take} if capacity is reached.
+
+\subsection{Operation Details}
+
+Processes in MELON communicate by storing messages to a distributed shared message store and retrieving the messages based on templates. In this paper, we assume messages consist of an ordered list of typed values and optionally an addressee. However, nothing in the paradigm itself limits how messages might be constructed (e.g., they could be an unordered tuple with named values instead).
+
+A message template is similar to a message, except it may contain both values and types. For example, a message containing \texttt{[1, "hello"]} could be matched by a template containing \texttt{[1, String]} or \texttt{[Integer, "hello"]} or \texttt{[Integer, String]}. A type will also match any subtypes.
+
+Each operation is implemented as a separate function call. \textbf{store} and \textbf{write} operations have null return values and return as soon as the saved message is available in the message store. \textbf{take} and \textbf{read} operations block by default until a matching message is returned, but may be set to non-blocking on a per-call basis.
+
+\begin{table}
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Operation} & \textbf{Return Type} \\ \hline
+\textbf{store}(\textit{message}, \textit{[address]}) & \textit{null} \\ \hline
+\textbf{write}(\textit{message}) & \textit{null} \\ \hline
+\textbf{take}(\textit{template}, \textit{[block = true]}) & \textit{message} or \textit{null} \\ \hline
+\textbf{read}(\textit{template}, \textit{[block = true]}) & \textit{message} or \textit{null} \\ \hline
+\textbf{take\_all}(\textit{template}, \textit{[block = true]}) & \textit{array} \\ \hline
+\textbf{read\_all}(\textit{template}, \textit{[block = true]}) & \textit{array} \\ \hline
+\end{tabular}
+\caption{MELON Operations}
+\end{table}
+
+The \textbf{store} operation takes a message as an argument and optionally an address. When called, \textbf{store} saves a copy of the message in the message store. Messages saved with \textbf{store} may only be retrieved with a \textbf{take} or \textbf{take\_all} operation. If an address is provided, then only the host with a matching identity can remove the message. Since storage space is bounded, messages may be automatically garbage collected from the storage space prior to explicit removal by a \textbf{take} or \textbf{take\_all} operation.
+
+The \textbf{write} operation also stores a single message in the message store, but the message may only be copied from the storage space with a \textbf{read} operation, never explicitly removed. Messages written with the \textbf{write} operation may be automatically garbage collected.
+
+A \textbf{take} operation requires a message template as the first argument and an optional boolean for the second argument.
+
+The message template is matched against available messages in the message store which were added with a \textbf{store} operation. If a matching message is found, it will be removed from the message store and returned.
+
+The block argument, which defaults to true if no argument is given, controls behavior of the operation if no matching message is available. If \textit{block} is true, the operation will wait until a matching message is available, then return it. If \textit{block} is false, the operation will return a null value.
+
+Once a message has been returned by a \textbf{take} operation, it is removed from the message store and may not be returned by a subsequent operation in any process.
+
+The \textbf{read} operation accepts the same arguments as \textbf{take}. A \textbf{read} operation will only return messages stored with a \textbf{write} operation which have not already been read by the current process.
+
+If a message matching the given message template is available, it will be copied and returned, but not removed from the message store. Once a message has been returned to a process, the message is considered to have been read by that process and will not be returned by any subsequent read or read\_all operations in the same process.
+
+When a matching unread message is not available, behavior of \textbf{read} depends on the \textit{block} argument. If the argument is true or unspecified, the operation will block until a matching message is available, then return that message. If the argument is false, the operation will return a null value.
+
+A message may be \textbf{read} by any number of processes, but only once per process.
+
+\begin{table}
+\centering
+\caption{Read from multiple processes}
+\begin{tabular}{|c|c|c|} \hline
+\textbf{Process A} & \textbf{Process B} & \textbf{Process C} \\ \hline
+\texttt{write([1, "hello"])} & \texttt{m = read([Integer, String])} & \texttt{m = read([Integer, String])} \\ \hline
+\end{tabular}
+\label{fig:readprocesses}
+\end{table}
+
+Table \ref{fig:readprocesses} illustrates one process writing a single message containing the integer \texttt{1} and the string \texttt{"hello"}. Processes B and C each perform a \textbf{read} operation with the template \texttt{[Integer, String]} which matches the message stored by process A. Since \textbf{read} does not modify the storage space, the value of \textit{m} for both process B and C will be a copy of the message \texttt{[1, "hello"]} from Process A.
+
+The \textbf{take\_all} operation performs a bulk \textbf{take} on the given message template. The return value of \textbf{take\_all} is an array of matching messages. As with \textbf{take}, messages returned by a \textbf{take\_all} are removed from the shared storage and may not be returned by any subsequent operation in any process. A \textbf{take\_all} operation will not return a directed message unless the addressee matches the current process. Only messages stored by a \textbf{store} operation will be returned by \textbf{take\_all}.
+
+When there are no matching messages and the value of \textit{block} is \textit{true} or unspecified, the operation will block until at least one matching message is available and then return an array of available messages. If \textit{block} is \textit{false}, \textbf{take\_all} will return an empty array.
+
+\textbf{read\_all} performs a bulk read on the given message template and returns an array of matched messages. \textbf{read\_all} only returns messages which have not been previously returned in the same process by a read or \textbf{read\_all}. A \textbf{read\_all} operation will only return messages written by a \textbf{write} operation.
+
+When there are no matching messages and the value of \textit{block} is true or unspecified, the operation will block until at least one matching message is available and return an array of available messages. If \textit{block} is false \textbf{read\_all} will return an empty array.

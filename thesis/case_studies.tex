@@ -1,0 +1,169 @@
+\chapter{Case Studies}
+
+\section{News Server/Reader}
+
+\section{Chat Application}
+
+\section{Experiment Coordinator}
+
+\begin{figure}
+\centering
+\includegraphics[scale = .34, clip, trim = 94px 279px 24px 252px]{figures/experiment_arch.pdf}
+\caption{Coordinator Architecture}
+\label{fig:coordarchitecture}
+\end{figure}
+
+To ease the process of repeatedly setting up experiments, we developed an experiment coordination framework written with MELON. The application handles running real applications on multiple hosts, executing the network emulator, and gathering results into a single location.
+
+The architecture of the framework is illustrated in Figure \ref{fig:coordarchitecture}. For simplicity, the coordinator resides on the same host as the network emulator. The coordinator sends out commands to clients which reside on each host. The clients are responsible for executing programs on their local host and sending resulting output to the central coordinator.
+
+The coordinator first writes a job containing the command to execute and any relevant options. Each client reads the job, starts the command, then stores a confirmation once the application is initialized and ready to begin. When the coordinator has taken a confirmation from each host, it starts the network emulator, then writes a ``go'' message. Upon reading the go message, each client signals the application to begin.
+
+As the application runs, the client gathers output and stores it. When the application finishes, it signals that it is done and then awaits a kill signal from the client. The client also stores a ``done'' signal. When the coordinator has taken a ``done'' message from each client, it collects the results and then sends a ``stop'' message. The clients then stop the applications and the framework is ready to start the next experiment.
+
+\section{Shared Whiteboard}
+
+\section{Shared Whiteboard Example}\label{sec:wb}
+
+A shared whiteboard is a digital document which may be edited and viewed by multiple users concurrently and is commonly proposed as an example of an application well-suited to MANETs\cite{wb5}\cite{wb6}. Shared whiteboards are distributed, real-time, and interactive, which presents some interesting characteristics. Since many participants may be updating the whiteboard, ordering of changes is very important to maintain a consistent document. It is also important that changes be propagated quickly so that each user is working with the latest document.
+
+We have implemented a shared whiteboard in MELON, publish/subscribe, RPC, and tuple spaces using JRuby (a Java implementation of the Ruby language) in order to compare their features and performance.
+Each version shares common code related to the actual whiteboard itself, which is implemented in the \texttt{Whiteboard} class.
+Changes to the shared whiteboard are encapsulated in a \texttt{Figure} object. Each version implements an \texttt{add\_local\_figure} method which is called when the user modifies the shared whiteboard.
+The MELON and tuple space versions also implement an \texttt{add\_remote\_figures} method which is used to retrieve updates from remote nodes.
+
+\subsection{Publish/Subscribe}
+
+The publish/subscribe paradigm divides processes into publishers and subscribers. In topic-based publish/subscribe, publishers simply publish messages tagged with a topic identifier. Subscribers receive the messages by subscribing to one or more topics and specifying a callback to handle the publications asynchronously and separately from the main process thread. It is also possible to handle multiple incoming publications concurrently. Publish/subscribe does not guarantee any ordering of publications nor does it specify how to deliver messages if the subscribers is not available at the time of publication. In distributed publish/subscribe such as MANETs, it is generally not expected that publishers would persist and deliver messages at a later time\cite{psfaces}.
+
+The publish/subscribe whiteboard in Table \ref{fig:pswb} sets up a subscription to the ``whiteboard" topic and a callback to add remotely published figures to the whiteboard. This allows the whiteboard to receive updates at any time in a separate thread, which is precisely what would be desired. To output a new figure, the whiteboard simply publishes the figure to the ``whiteboard" topic.
+
+\begin{table}
+\centering
+\begin{tabular}{c c}
+\begin{minipage}{2.75in}
+\begin{verbatim}
+require "ps"
+require "whiteboard"
+
+class PSWhiteboard < Whiteboard
+  def initialize
+    @ps = PS.new
+    
+    @ps.subscribe("whiteboard") do |figure|
+      add_figure(figure)
+    end
+  end
+
+  def add_local_figure(figure)
+    @ps.publish("whiteboard", figure)
+  end
+end
+\end{verbatim}
+\caption{Publish/Subscribe Whiteboard}\label{fig:pswb}
+\end{minipage}
+&
+\begin{minipage}{2.5in}
+\begin{verbatim}
+require "rpc"
+require "whiteboard"
+
+class RPCWhiteboard < Whiteboard
+  def initialize
+    @rpc = RPC.new
+    @rpc.export(self)
+  end
+
+  def add_local_figure(figure)
+    wbs = @rpc.find_all("RPCWhiteboard")
+    wbs.add_figure(figure)
+  end
+end
+
+
+\end{verbatim}
+\caption{RPC Whiteboard}\label{fig:rpcwb}
+\end{minipage}
+\end{tabular}
+\end{table}
+
+
+\subsection{RPC}
+
+Remote procedure calls (RPC) is a distributed programming paradigm which disguises remote communication as local method calls. A host can ``export" an object to be accessed remotely. Remote hosts discover these remote objects by name and then invoke methods on them. Arguments may be passed to the remote method and the return value of the method is returned to the local process. A variation of this used in our example is group RPC, which allows us to invoke the same method with the same arguments on all known remote objects of the requested type. These calls are performed asynchronously. Typically the return values would be handled by a callback, but this functionality is not used in our example.
+
+A shared whiteboard implementation using RPC is listed in Table 5. When the whiteboard is initialized, it exports itself as a remote object. This allows other hosts to remotely invoke the \texttt{add\_figure}. Like publish/subscribe, this allows the whiteboard to accept remote figures asynchronously from the main process thread and is a natural feature of RPC. Distribution of remote figures is performed by first finding all remote instances of \texttt{RPCWhiteboard}, then invoking the \texttt{add\_figure} method (defined on the parent class) directly, passing in the new figure as an argument. Since the group RPC is asynchronous, it is possible that a call might complete before a prior call.
+
+\subsection{Tuple Spaces}
+
+Tuple spaces operate on a distributed shared memory space of ordered tuples. Tuples may be output using the \textbf{out} operation, then retrieved using \textbf{rd}, which copies the tuple, or \textbf{in}, which removes the tuple from the tuple space based on matching templates. If multiple tuples match a template, one of the matching tuples is chosen nondeterministically to be returned.
+
+Table \ref{fig:tswb} shows the tuple space version, which is very similar to MELON. To send an update, it outputs a tuple containing just the new figure. Unlike MELON, a misbehaving or misconfigured client could remove the messages from the tuple space, disrupting the shared whiteboard communication. Retrieval of remote messages uses a \textbf{bulk\_rd} operation to read all messages containing a figure. To continuously retrieve messages asynchronously, this method can be called inside a loop in a separate thread. Once a group of figures is retrieved, each individual figure is added to the local whiteboard.
+
+Tuple spaces suffer from the multiple read problem\cite{mrdp}: repeated nondestructive read operations (\textbf{rd}) may return any matching tuple, including the same tuple. As discussed in \cite{mrdp}, one solution is to use a mutex tuple to gain exclusive access to the tuple space, remove all the desired tuples using \textbf{in}, then replace all the tuples and release the mutex. However, this approach prevents concurrent access and is dangerous in a MANET where the node holding the mutex may disappear. Another solution is to use a counter in each tuple, then read tuple 0, then tuple 1, and so on. Then each process can request tuples by the counter value. However, if multiple processes are producing tuples they must coordinate to produce consistent counters, essentially resulting in a producer-side mutex.
+
+Finally, \cite{mrdp} proposes a \textbf{copy-collect} operation, which copies all matching tuples. We have implemented this as the \textbf{bulk\_rd} operation as used in Table \ref{fig:tswb}. However, this does not solve what might be termed the ``multiple multiple read problem": since our tuple space is not static, reading all matching tuples once is not sufficient. We need to be able to perform multiple \textbf{bulk\_rd}s to get all figures added to the whiteboard. Without \textit{a prior} knowledge of remote hosts in the system, the only option which allows concurrent access to the tuple space is to read \textit{all} matching tuples. Naturally, this becomes quite expensive as the number of tuples grows.
+
+\begin{table}
+\centering
+\begin{tabular}{c c}
+\begin{minipage}{2.75in}
+\begin{verbatim}
+require "melon"
+require "whiteboard"
+
+class MelonWhiteboard < Whiteboard
+  def initialize
+    @melon = Melon.new
+  end
+  
+  def add_local_figure(figure)
+    @melon.write([Figure])
+  end
+
+  def add_remote_figures
+    figures = @melon.read_all([Figure])
+
+    figures.each do |figure|
+      add_figure(figure[0])
+    end
+  end
+end
+\end{verbatim}
+\caption{MELON Whiteboard}\label{fig:mwb}
+\end{minipage}
+&
+\begin{minipage}{2.5in}
+\begin{verbatim}
+require "tuplespace"
+require "whiteboard"
+
+class TSWhiteboard < Whiteboard
+  def initialize
+    @ts = Tuplespace.new
+  end
+
+  def add_local_figure(figure)
+    @ts.out([Figure])
+  end
+
+  def add_remote_figures
+    figures = @ts.bulk_rd([Figure])
+
+    figures.each do |figure|
+      add_figure(figure[0])
+    end
+  end
+end 
+\end{verbatim}
+\caption{Tuple Space Whiteboard}\label{fig:tswb}
+\end{minipage}
+\end{tabular}
+\end{table}
+
+\subsection{MELON}
+
+The MELON whiteboard in Table \ref{fig:mwb} writes out each figure in a tuple containing just the new figure. It uses the \textbf{write} operation since every remote node needs to be able to read the figures. To retrieve remote figures, MELON uses \textbf{read\_all} to nondestructively read all messages containing a \texttt{Figure}. Like tuple spaces, the \texttt{add\_remote\_figures} method should be called in a separate thread to provide asynchronous updates. Unlike tuple spaces, MELON's \textbf{read\_all} operation only retrieves unread messages, eliminating the ``multiple multiple read" problem.
+
+MELON directly provides three features which are helpful to the whiteboard application: persistent messages, reading only unread messages, and returning messages in a per-host ordering. Message persistence is crucial in MANET applications, where communication with remote nodes is often disrupted and delayed. For a shared whiteboard, every message must be delivered to keep the document synchronized between users. By managing read versus unread messages, MELON easily allows the whiteboard to efficiently fetch only newly-added figures. Finally, MELON guarantees the updates from each host will be retrieved in the order that host initiated them. While this does not provide a global ordering, it does ensure updates from a single host will be in order.
+
