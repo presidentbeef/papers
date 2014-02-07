@@ -21,9 +21,8 @@
 \maketitle
 
 \begin{abstract}
-Developing distributed applications for mobile ad hoc network continues to be challenging due to the dynamic and unpredictable nature of MANETs. MELON is a general purpose coordination language designed to provide flexible communication patterns for MANET applications while remaining lightweight. Based on a distributed shared message store, MELON abstracts network communication to an asynchronous exchange of persistent messages. MELON simplifies application development by supporting read-only and remove-only messages, bulk message retrieval, and per-host ordering of messages. In this paper, we review the MELON programming model, demonstrate its utility for writing MANET applications, and quantitatively compare it to traditional distributed computing paradigms in a MANET context.
+Developing distributed applications for mobile ad hoc network continues to be challenging due to the dynamic and unpredictable nature of MANETs. MELON is a general purpose coordination language designed to provide flexible communication patterns for MANET applications while remaining lightweight. Based on a distributed shared message store, MELON abstracts network communication to an asynchronous exchange of persistent messages. MELON simplifies application development by supporting read-only and remove-only messages, bulk message retrieval, and per-host ordering of messages. In this paper, we review the MELON programming model, demonstrate its utility for writing MANET applications, and quantitatively compare it to traditional distributed computing paradigms in a MANET context. For a shared whiteboard application, we find MELON achieves 100\% message delivery with 95\% less latency than tuple spaces while also maintaining per-host message ordering.
 \end{abstract}
-%
 
 \section{Introduction}
 
@@ -31,9 +30,9 @@ Tiny, powerful personal computers are quickly becoming ubiquitious. In the Unite
 
 Several language, middleware, and library solutions to dealing with MANET communication have been proposed to assist in developing MANET applications. The majority of these proposals are based on traditional distributed computing paradigms\cite{mine}. Of these, publish/subscribe, remote procedure calls, and tuple spaces are commonly used. However, these communication paradigms were originally designed for stable, wired networks or even interprocedural communication on a single machine. While they have been adapted to MANETs, their original designs are limiting and not well-suited to the MANET environment\cite{collins2010quantitative}.
 
-To address the need for a communication paradigm designed specifically to operate in MANETs, we have proposed a new coordination language called MELON\cite{melon}. MELON provides a flexible, general-purpose communication abstraction which may be completely distributed. In addition to basic message exchange, MELON also implements bulk message retrieval, provides basic message access control, enforces per-host ordering of messages, and supports message streams.
+To address the need for a communication paradigm designed to operate in MANETs, we have proposed a new coordination language called MELON\cite{melon}. MELON provides a flexible, general-purpose communication abstraction which may be completely distributed. In addition to basic message exchange, MELON also implements bulk message retrieval, provides basic message access control, enforces per-host ordering of messages, and supports message streams.
 
-In this paper we describe the MELON paradigm, compare implementing a shared whiteboard application with publish/subscribe, RPC, tuple spaces, and MELON, and finally compare the performance of each whiteboard implementation. We demonstrate MELON is well-suited for developing MANET applications, and while slower than publish/subscribe and RPC, it is the only paradigm to deliver 100\% of sent messages. MELON also delivered whiteboard messages with 95\% less latency and 60\% more in-order messages when compared to tuple spaces.
+In this paper we describe the MELON paradigm, compare implementing a shared whiteboard application with publish/subscribe, RPC, tuple spaces, and MELON, and finally compare the performance of each whiteboard implementation. We demonstrate MELON is well-suited for developing MANET applications, and while slower than publish/subscribe and RPC, it is the only paradigm to deliver 100\% of sent messages. MELON also delivered whiteboard messages with 95\% less latency and 60\% more in-order messages compared to tuple spaces.
 
 In Section \ref{sec:design} we review the design of MELON, the operations it provides, and our prototype implementation. We compare shared whiteboard implemented with different paradigms in Section \ref{sec:wb} and then measure performance of each paradigm in Section \ref{sec:comparison}. Section \ref{sec:relatedwork} describes related work and finally our conclusions are presented in Section \ref{sec:conclusions}.
 
@@ -45,7 +44,7 @@ However, aside from the shared message store, MELON departs significantly from t
 
 Given the prevalence of private messages in current mobile applications (e.g., SMS, instant messaging, direct messaging in social applications), one further option for messages is to make them private. A take-only message may be given an addressee, which is the only process permitted to read the message.
 
-MELON contains some additional minor differences from tuple spaces. First, messages are not required by the paradigm to be tuples, but may be implemented as any structure, given they can be matched by a template (for example, messages could be unordered tuples with named values instead). Secondly, considering the storage limitations of mobile devices, MELON explicitly limits the space available on a host for storing messages. As a result, messages may be automatically garbage collected. A last deviation from tuple spaces is the removal of strict semantics for returning messages. In tuple spaces, the semantics stipulate that if a matching message exists, it must be returned for a retrieval operation. In the reality of MANETs, this semantic cannot be met, so in MELON all retrieval operations are limited to best-effort.
+MELON contains some additional minor differences from tuple spaces. First, messages are not required by the paradigm to be tuples, but may be implemented as any structure, given they can be matched by a template (e.g., messages could be unordered tuples with named values instead). Secondly, considering the storage limitations of mobile devices, MELON explicitly limits the space available on a host for storing messages. As a result, messages may be automatically garbage collected. A last deviation from tuple spaces is the removal of strict semantics for returning messages. In tuple spaces, the semantics stipulate that if a matching message exists, it must be returned for a retrieval operation. In the reality of MANETs, this semantic cannot be met, so in MELON all retrieval operations are limited to best-effort.
 
 These differences were introduced in MELON to both relieve the application developer of certain responsibilities and to allow the paradigm to operate well in a MANET. For example, read-only messages prevent a badly-behaved process from removing important messages meant to be read by many processes, and per-host ordering is especially convenient in applications such as news feeds or streaming video, where most messages are generated by a single host and the ordering is important. MELON is also deliberately designed to avoid any global state and allow for a completely distributed implementation.
 
@@ -207,7 +206,7 @@ end
 
 \subsection{RPC}
 
-Remote procedure calls (RPC) is a distributed programming paradigm which disguises remote communication as local method calls. A host can ``export" an object to be accessed remotely. Remote hosts discover these remote objects by name and then invoke methods on them. Arguments may be passed to the remote method and the return value of the method is returned to the local process. A variation of this used in our example is group RPC, which allows us to invoke the same method with the same arguments on all known remote objects of the requested type. These calls are performed asynchronously. Typically the return values would be handled by a callback, but this functionality is not used in our example.
+Remote procedure calls (RPC) is a distributed programming paradigm which disguises remote communication as local method calls. A host can ``export" an object to be accessed remotely. Remote hosts discover these remote objects by name and then invoke methods on them. Arguments may be passed to the remote method and the return value of the method is returned to the local process. A variation of this used in our example is group RPC, which allows us to invoke the same method with the same arguments on all known remote objects of the requested type. These calls are performed asynchronously. Typically the return values would be handled by a callback, but this is not required in our example.
 
 A shared whiteboard implementation using RPC is listed in Table 5. When the whiteboard is initialized, it exports itself as a remote object. This allows other hosts to remotely invoke the \texttt{add\_figure}. Like publish/subscribe, this allows the whiteboard to accept remote figures asynchronously from the main process thread and is a natural feature of RPC. Distribution of remote figures is performed by first finding all remote instances of \texttt{RPCWhiteboard}, then invoking the \texttt{add\_figure} method (defined on the parent class) directly, passing in the new figure as an argument. Since the group RPC is asynchronous, it is possible that a call might complete before a prior call.
 
@@ -239,6 +238,8 @@ class MelonWhiteboard < Whiteboard
   end
 
   def add_remote_figures
+  	 # Returns only unread figures
+  	 # in per-host order
     figures = @melon.read_all([Figure])
 
     figures.each do |figure|
@@ -265,6 +266,8 @@ class TSWhiteboard < Whiteboard
   end
 
   def add_remote_figures
+  	 # Returns ALL figures
+  	 # in arbitrary order
     figures = @ts.bulk_rd([Figure])
 
     figures.each do |figure|
@@ -286,7 +289,7 @@ MELON directly provides three features which are helpful to the whiteboard appli
 
 \subsection{Summary}
 
-All four implementations of the whiteboard have been kept as simple and similar as possible in order to highlight the differences between the paradigms.
+All four implementations of the whiteboard have been kept as simple and similar as possible in order to highlight the differences between the paradigms. However, while MELON appears to be as simple to use as the other paradigms, it provides more functionality.
 
 Publish/subscribe and RPC are push-based paradigms which allow messages to be received asynchronously by their nature. However, they do not provide message persistence. While publish/subscribe is a multicast paradigm by default, RPC must be adapted to perform group communication. Also note that RPC must explicitly discover remote objects in order to invoke remote methods while this is handled automatically by the publish/subscribe paradigm. In both paradigms figures are sent and received singly, although multiple messages may be received concurrently.
 
@@ -306,7 +309,9 @@ In our scenario, six nodes are running the whiteboard application, the rest func
 
 \subsection{Results}
 
-For each implementation, we measured the number of messages lost, the number of messages received out of order, and the message latency. For out-of-order messages, we divided it into two metrics: host out-of-order and global out-of-order. Host out-of-order messages are messages from a single host which are not received in the order sent. Global out-of-order messages are those received before their preceding message. For example, if node A receives a message \textit{m}$_{1}$ from node B, then sends \textit{m}$_{2}$. If node C receives \textit{m}$_{2}$ prior to \textit{m}$_{1}$, \textit{m}$_{2}$ will be considered out of order.
+For each implementation, we measured lost messages, messages received out of order, and the message latency. For out-of-order messages, we divided it into two metrics: host out-of-order and global out-of-order. Host out-of-order messages are messages from a single host which are not received in the order sent. Global out-of-order messages are those received before their preceding message. For example, if node A receives a message \textit{m}$_{1}$ from node B, then sends \textit{m}$_{2}$. If node C receives \textit{m}$_{2}$ prior to \textit{m}$_{1}$, \textit{m}$_{2}$ will be considered out of order.
+
+As guaranteed by the paradigm, MELON maintains host ordering in all scenarios while publish/subscribe and RPC do not. For global message ordering, MELON outperforms tuples spaces by 67\% and remains within 15\% of RPC performance until packet loss reaches 30\%. However, this is because MELON continues to achieve 100\% message delivery while RPC drops nearly 12\% of messages when the network conditions are poor. Reliability does decrease speed, but MELON experiences 95\% less latency than tuple spaces while remaining within 3 seconds of RPC in the worst case. While we would like speed, reliability, and perfect ordering of messages for a shared whiteboard, it is better to have the document be eventually consistent than to lose information.
 
 \begin{figure}[ht]
 \centering
@@ -317,12 +322,23 @@ For each implementation, we measured the number of messages lost, the number of 
 \end{minipage}
 \quad
 \begin{minipage}[b]{0.48\linewidth}
-
 \includegraphics[width = \textwidth]{figures/latency.pdf}
 \caption{Message Latency}
 \label{fig:latency}
 \end{minipage}
 \end{figure}
+
+In our experiments, messages from a single host were generally delivered in the order they were sent as shown in Figure \ref{fig:hooo}. For MELON and tuple spaces, no messages were delivered out of order. Note for tuple spaces this is an accident of the implementation, whereas in MELON it is guaranteed. In LighTS, tuples are sequentially stored locally in an array in the order they are output, then returned in that same order when they are matched. Tuple spaces in general do not return matched messages in any particular order.
+
+In this application, RPC is used in an asynchronous manner since it is providing group communication. If one call is delayed, it is possible a subsequent call will complete before a prior one, which is why RPC delivers a small number of messages out of order. Publish/subscribe is fully asynchronous and incoming publications can be processed concurrently. However, even in the worst case publish/subscribe delivers 97.8\% of the messages from a host in the order they were sent. Like tuple spaces this is the result of the implementation: the RPC and publish/subscribe paradigms make no promises about the ordering of messages. 
+
+Unlike per-host ordering, many messages were delivered out of order from a global perspective as can be seen in Figure \ref{fig:gooo}. This is entirely expected, since none of the paradigms provide a global ordering. Enforcing a global ordering in an unreliable network is not feasible, since nodes may become unavailable at anytime while continuing to output messages. However, the global ordering remains important for a shared whiteboard.
+
+Our results show publish/subscribe performs the best for this metric. Indeed, ordering is largely dependent on deliveries completing quickly before later messages overtake them. As shown in Figure \ref{fig:latency}, publish/subscribe is an extremely quick method for delivering messages, so it excels in ordering as well. Conversely, tuple spaces fare the worst, delivering 67\% of messages out of order. Again, because tuple spaces provide no way of controlling which matches messages are returned or in what order, the whiteboard implementation must transfer large amounts of tuples in order to nondestructively read all matching messages. This is extremely slow, as reflected in Figure \ref{fig:latency}.
+
+MELON and RPC perform about the same for global ordering, although MELON is more affected when the network conditions worsen. This is likely due to MELON's reliable message delivery (Figure \ref{fig:delivery}), since some messages may be delayed significantly by broken network routes or network partitioning. In contrast, losing messages can improve ordering since a message not delivered cannot be out of order. Of the paradigms compared, MELON is the only one to demonstrate 100\% message delivery. Tuple spaces are expected to be reliable, but again in this application it is required to deliver large amounts of messages. Since the median latency for tuple spaces reached a full minute, the experiment completed before some messages arrived.
+
+
 \begin{figure}[ht]
 \centering
 \begin{minipage}[b]{0.48\linewidth}
@@ -338,21 +354,12 @@ For each implementation, we measured the number of messages lost, the number of 
 \end{minipage}
 \end{figure}
 
-In our experiments, messages from a single host were generally delivered in the order they were sent as shown in Figure \ref{fig:hooo}. For MELON and tuple spaces, no messages were delivered out of order. However, it should be noted that for tuple spaces this is an accident of the implementation, whereas in MELON it is guaranteed. In LighTS, tuples are sequentially stored locally in an array in the order they are output, then returned in that same order when they are matched. Tuple spaces in general do not return matched messages in any particular order.
 
-In this application, RPC is used in an asynchronous manner since it is providing group communication. If one call is delayed, it is possible a subsequent call will complete before a prior one, which explains why RPC delivers a small number of messages out of order. Publish/subscribe is fully asynchronous and incoming publications can even be processed concurrently. However, even in the worst case publish/subscribe delivers 97.8\% of the messages from a host in the order they were sent. Unfortunately, like tuple spaces this is just the result of a single implementation and the RPC and publish/subscribe paradigms make no promises about the ordering of messages. 
-
-Unlike per-host ordering, many messages were delivered out of order from a global perspective as can be seen in Figure \ref{fig:gooo}. This is entirely expected, since none of the paradigms provide a global ordering. Enforcing a global ordering in an unreliable network is not feasible, since nodes may become unavailable at anytime while continuing to output messages. However, the global ordering remains important for a shared whiteboard.
-
-Our results show publish/subscribe performs the best for this metric. Indeed, ordering is largely dependent on deliveries completing quickly before later messages overtake them. As shown in Figure \ref{fig:latency}, publish/subscribe is an extremely quick method for delivering messages, so it excels in ordering as well. Conversely, tuple spaces fare the worst, delivering 67\% of messages out of order. Again, because tuple spaces provide no way of controlling which matches messages are returned or in what order, the whiteboard implementation must transfer large amounts of tuples in order to nondestructively read all matching messages. This is extremely slow, as reflected in Figure \ref{fig:latency}.
-
-MELON and RPC perform about the same for global ordering, although MELON is more affected when the network conditions worsen. This is likely due to MELON's reliable message delivery (Figure \ref{fig:delivery}), since some messages may be delayed significantly by broken network routes or network partitioning. In contrast, losing messages can improve ordering since a message not delivered cannot be out of order. Of the paradigms compared, MELON is the only one to demonstrate 100\% message delivery. Tuple spaces would also be expected to be reliable, but again in this application it is required to deliver large amounts of messages. Given that the median latency for tuple spaces reached a full minute, the experiment completed before some messages arrived.
-
-While we have seen publish/subscribe have low delivery ratios in the past\cite{collins2010quantitative}, here it performs well in the lossy environment due to its quick delivery rates, but still dropped 1.4\% of messages when the network connectivity was good. RPC performs predictably, slowing losing more messages as the network degrades. Again, we are using group RPC, which means the application is not aware of how many receivers may be available and therefore does not retry to complete calls if a host cannot be reached for a period of time. Fully synchronous RPC would block the process until the message is delivered. However, that would also delay deliveries considerably which is not acceptable for a whiteboard application.
+While low delivery rates from publish/subscribe have been observed in the past\cite{collins2010quantitative}, here it performs well in the lossy environment due to its quick delivery rates, but still dropped 1.4\% of messages when the network connectivity was good. RPC never achieves 100\% delivery rates and slowly loses more messages as the network degrades. In group RPC, the application cannot be aware of how many receivers may be available and therefore does not attempt to retry calls after timeouts. Fully synchronous RPC would block the process until the message is delivered, but the deliveries would be considerably delayed which is not acceptable for a whiteboard application.
 
 Median time between sending and receiving a message is reported in Figure \ref{fig:latency}. Since tuple spaces are so much slower, the results are aligned with the right-hand y-axis which is an order of magnitude higher. Publish/subscribe was extremely quick, which is expected since it requires no message confirmations nor active discovery of remote hosts. RPC was also quite fast until it was slowed down along with the other paradigms by the 30\% packet loss.
 
-Logically, delivery rates and latency are directly related. With reliable delivery some messages may be very late, increasing overall latency. On the other hand, dropped messages do not count towards the latency metric, so a lossy communication paradigm can appear to be very fast. MELON errs on the side of reliability, and therefore is a bit slower as the network becomes less reliable and more delivery attempts are required. There is an additional trade-off that pull-based paradigms like MELON and tuple spaces must make, which is the frequency of the pull attempts. Publish/subscribe and RPC may send as soon as a message is ready, but MELON and tuple spaces must continually poll to receive messages. Faster polling results in faster message delivery, but higher overall network usage, collisions and resource monopolization.
+Logically, delivery rates and latency are directly related. With reliable delivery some messages may be very late, increasing overall latency. Since dropped messages do not count towards median latency, a lossy communication paradigm can appear very fast. MELON provides better reliability and therefore is a bit slower as the network becomes less reliable and more delivery attempts are required. Frequency of the pull attempts are another trade-off that pull-based paradigms like MELON and tuple spaces must make. Publish/subscribe and RPC may send as soon as a message is ready, but MELON and tuple spaces must continually poll to receive messages. Faster polling results in faster delivery, but higher overall network usage, collisions and resource monopolization.
 
 \section{Related Work}\label{sec:relatedwork}
 
@@ -364,7 +371,9 @@ Further surveys of middleware, languages, and communication paradigms for MANET 
 
 \section{Conclusions}\label{sec:conclusions}
 
-Traditional distributed computing paradigms were not designed to operate in dynamic, self-organizing MANETs where disconnections and topology changes are frequent. In this paper we have qualitatively and quantitatively compared the MELON coordination language to traditional distributed computing paradigms. The results indicate the features of MELON are useful in a shared whiteboard application for MANETs while its performance was measured to be comparable to existing paradigms when operating in a MANET environment. This demonstrates MELON can serve as a practical approach to communication in MANET applications.
+Traditional distributed computing paradigms were not designed to operate in dynamic, self-organizing MANETs where disconnections and topology changes are frequent. In this paper we have introduced the MELON coordination language and compared it qualitatively and quantitatively to traditional distributed computing paradigms adapted for MANETs.
+
+In our experiments with a shared whiteboard application, MELON was the only paradigm to deliver 100\% of sent messages. It also provided 100\% host ordering of messages with 95\% less latency than tuple spaces and 67\% more globally in-order messages, without additional complexity for the application developer. These results indicate MELON can serve as a practical approach for communication in MANET applications.
 
 \bibliographystyle{unsrt}
 \bibliography{refs}
