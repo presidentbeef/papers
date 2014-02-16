@@ -28,29 +28,19 @@ We also provide a \textit{reaction} mechanism\cite{lime}. An application may reg
 
 An application may also perform group requests. These are always asynchronous, due to the possibility of multiple matching tuples, but can still be considered blocking or non-blocking. A non-blocking group request will not be saved on remote nodes to be served later, while a blocking request will be.
 
-\subsection{Applications}
-
-The first application used for these experiments is a simple client-server application which can send messages between hosts. This provides a baseline for the performance results and allows us to easily test performance with varying message sizes and frequency. The second application is a shared whiteboard. Collaborative applications are often cited as use cases for MANETs and the shared whiteboard is a common example\cite{wb1, wb2, wb3, wb4}. This provides a non-trivial, realistic test case for each of the three communication paradigms. 
-
-Each application has three functionally equivalent implementations, one for each of the communication paradigms.
-
 \subsection{Experimental Results}
 
 In the following sections, we present measurements of message delay and message delivery reliability for unicast and group communication, as well as for a non-trivial whiteboard application. We also examine the message overhead and the influence of routing algorithms. These experiments demonstrate the impact of the wireless network and mobility at the application level.
 
 We compared application-level metrics using unicast and group communication in three network scenarios which are used throughout the experiments: a single hop, static network; a multi-hop, static network; and a fully mobile network. Each node in the emulated network is equipped with an 802.11b wireless interface. The two-ray model is used for path loss. Based on preliminary results, we used DSR\cite{dsr} as the routing protocol for the static scenarios and AODV\cite{aodv} for the mobile scenario.
 
-%The implemented paradigms can be directly evaluated in several MANET scenarios using an emulator which provides high-fidelity representations of MANET environments. The repeatability of an emulator ensures that each paradigm can be evaluated in exactly the same situations and scenarios.
-%Rather than comparing the utility and performance of the paradigms theoretically, the emulation approach allows them to be evaluated within actual applications. This more closely reflects their eventual purpose: the development of applications which will execute on a MANET.
+The mobile scenario uses random waypoint mobility with a pause time of 30\textit{s} and maximum speed of 1 meter/second, representing pedestrians carrying handheld devices. The nodes move within a 1500\textit{m} x 1500\textit{m} indoor space where transmission range is limited to 50m. To avoid network segmentation, the scenario ensures there are always possible routes between any two nodes by having four fixed nodes. However, the remainder of the nodes are highly mobile and routes between nodes change frequently. .The mobility pattern in each experiment is identical.
+ 
+The emulation environment is provided by EXata\cite{exata}, a network emulator which allows actual applications to run on an emulated wireless network in real time. EXata provides a high fidelity emulation of the entire network stack and detailed simulation of the wireless channel. This provides the realistic environment required for accurate assessment of the paradigms while also facilitating repeatability and fairness\cite{fidelity1,fidelity2}. Rather than comparing the utility and performance of the paradigms theoretically, the emulation approach allows them to be evaluated within actual applications. This more closely reflects their eventual purpose: the development of applications which will execute on a MANET.
 
-The mobile scenario uses random waypoint mobility with a pause time of 30\textit{s} and maximum speed of 1 meter/second, representing pedestrians carrying handheld devices. The nodes move within a 1500\textit{m} x 1500\textit{m} indoor space where transmission range is limited to 50m. To avoid network segmentation, the scenario ensures there are always possible routes between any two nodes by having four fixed nodes. The mobility pattern in each experiment is identical.
+The first application used for these experiments is a simple client-server application which can send messages between hosts. This provides a baseline for the performance results and allows us to easily test performance with varying message sizes and frequency. The second application is a shared whiteboard. Collaborative applications are often cited as use cases for MANETs and the shared whiteboard is a common example\cite{wb1, wb2, wb3, wb4}. This provides a non-trivial, realistic test case for each of the three communication paradigms. 
 
-%The emulation environment is provided by EXata\cite{exata}, a network emulator which allows actual applications to run on an emulated wireless network in real time. EXata provides a high fidelity emulation of the entire network stack and detailed simulation of the wireless channel. This provides the realistic environment required for accurate assessment of the paradigms while also facilitating repeatability and fairness\cite{fidelity1,fidelity2}.
-
-%However, the remainder of the nodes are highly mobile and routes between nodes change frequently. 
-%In the group communication experiments, Node 1 is the sender.
-
-
+Each application has three functionally equivalent implementations, one for each of the communication paradigms.
 
 \subsubsection{Unicast Communication}
 
@@ -105,17 +95,17 @@ Tuple spaces require the same number of messages as RPC, but the overhead is 2.3
 
 \begin{figure}
 \centering
-\mbox {
-\subfigure[Bytes per Message] {\label{fig:overhead-bytes}
-	\includegraphics[width = .48\textwidth]{figures/message-overhead-bytes.pdf}
-	}
-\subfigure[TCP Packets per Message] {\label{fig:overhead-packets}
-	\includegraphics[width = .48\textwidth]{figures/message-overhead-packets.pdf}
-	}
-}
-\caption{Average Message Overhead}
+\includegraphics[width = .48\textwidth]{figures/message-overhead-bytes.pdf}
+\caption{Bytes per Message}
+\label{fig:overhead-bytes}
 \end{figure}
 
+\begin{figure}
+\centering
+\includegraphics[width = .48\textwidth]{figures/message-overhead-packets.pdf}
+\caption{TCP Packets per Message}
+\label{fig:overhead-packets}
+\end{figure}
 
 \subparagraph{Network Overhead}
 
@@ -158,19 +148,23 @@ Since tuple spaces only support pull operations, the situation is inverted. Rece
 
 \begin{figure}
 \centering
-\mbox {
-\subfigure[Single Hop Scenario] {\label{fig:sgdel}
-	\includegraphics[width = 0.49\textwidth, clip, trim = 0px 400px 0px 400px]{figures/single-hop-group-delivery.pdf}
-	}
-\subfigure[Multihop Scenario] {\label{fig:mhgdel}
-	\includegraphics[width = 0.59\textwidth, clip, trim = 0px 0px 0px 0px]{figures/multi-hop-group-delivery.pdf}
-	}
-	
-\subfigure[Mobile Scenario]{\label{fig:mgdel}
-	\includegraphics[width = 0.40\textwidth, clip, trim = 0px 0px 0px 0px]{figures/mobile-group-delivery.pdf}
-	}
-}
-\caption{Message Reliability}
+\includegraphics[width = 0.49\textwidth, clip, trim = 0px 400px 0px 400px]{figures/single-hop-group-delivery.pdf}
+\caption{Message Delivery - Single Hop}
+\label{fig:sgdel}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width = 0.59\textwidth, clip, trim = 0px 0px 0px 0px]{figures/multi-hop-group-delivery.pdf}
+\caption{Message Delivery - Multihop}
+\label{fig:mhgdel}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width = 0.40\textwidth, clip, trim = 0px 0px 0px 0px]{figures/mobile-group-delivery.pdf}
+\caption{Message Delivery - Mobile}
+\label{fig:mgdel}
 \end{figure}
 
 
@@ -187,7 +181,6 @@ This contributes to tuple spaces showing the lowest delivery ratio (93\%) in the
 Figure \ref{fig:tuple-failure} illustrates why this is the case. The interaction in the ideal scenario assumes the sender and receiver are present for the entire interaction. In the second scenario, however, the receiver moves away from the sender after sending the initial request for an outgoing tuple. In step 3, the sender sends the reply request, but it cannot be delivered. When the receiver returns, it repeats its request for an outgoing tuple, because it is a blocking request which has not yet been satisfied. The sender satisfies the request, but the reply is never sent since the receiver never receives the reply request.
 
 \begin{figure}
-\centering
 \mbox {
 	\subfigure[Ideal Scenario] {
 		\includegraphics[scale = .40 , clip, trim = 0px 400px 500px 35px]{figures/tuple-failure.pdf}
@@ -345,7 +338,7 @@ From the mobile reliability results, we can infer that DSR does not maintain via
 \label{fig:wbrouting-m}
 \end{figure}
 
-Earlier in this paper, we investigated application and transport layer overhead for each paradigm. In this section, we look at the routing overhead incurred for each paradigm when used in the whiteboard application. Ideally, the amount of routing overhead should be as small as possible in order to conserve bandwidth.
+Above, we investigated application and transport layer overhead for each paradigm. In this section, we look at the routing overhead incurred for each paradigm when used in the whiteboard application. Ideally, the amount of routing overhead should be as small as possible in order to conserve bandwidth.
 
 Figures \ref{fig:wbrouting-sh}, \ref{fig:wbrouting-mh}, and \ref{fig:wbrouting-m} show the number of routing packets generated in each scenario. For the single hop and multihop scenarios, DSR has much lower overhead. Once mobility is introduced, however, the routing packets from DSR dwarf the number used by AODV. This appears to correspond to the low message delivery in Figure \ref{fig:wbdeliverydsr}, although the message delay remains low for the messages which are actually delivered.
 
