@@ -6,21 +6,16 @@
 
 \begin{figure}
 \centering
-
-\begin{subfigure}{.5\textwidth}
-\centering
 \includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/read_speed.pdf}
 \caption{Read Speed}
 \label{fig:readspeed}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
+\end{figure}
+
+\begin{figure}
 \centering
 \includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/in_speed.pdf}
 \caption{Take Speed}
 \label{fig:takespeed}
-\end{subfigure}
-
-\caption{Operation Speeds}
 \end{figure}
 
 To establish a baseline for performance, we measured the time for the \textbf{write}, \textbf{read}, \textbf{store}, and \textbf{take} operations directly on a local message storage and compared the results to the LighTS\cite{lights} local tuple space implementation used by LIME. In these experiments, all messages are first stored, then either read or removed from the local storage. No network communication is involved.
@@ -56,21 +51,16 @@ For MELON, \textbf{take} and \textbf{read} requests must send a message template
 
 \begin{figure}
 \centering
-
-\begin{subfigure}{.5\textwidth}
-\centering
 \includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/latency_static.pdf}
-\caption{Static Scenario}
+\caption{Message Latency - Static Scenario}
 \label{fig:latencystatic}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
+\end{figure}
+
+\begin{figure}
 \centering
 \includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/latency_mobile.pdf}
-\caption{Mobile Scenario}
+\caption{Message Latency - Mobile Scenario}
 \label{fig:latencymobile}
-\end{subfigure}
-
-\caption{Message Latency}
 \end{figure}
 
 Figures \ref{fig:latencystatic} and \ref{fig:latencymobile} show the average latency between a client's request for a message and the receipt of a matching message. The error lines indicate the standard deviation. In these experiments, a single host writes out 1,000 messages with a 1KB payload, and the other hosts concurrently read the messages. Tuple spaces and MELON used the \textbf{rd}/\textbf{read} operations to retrieve the messages one at a time, rather than the bulk retrieval with \textbf{rdg} or \textbf{read\_all}. Since publish/subscribe does not involve a ``request'' beyond the initial operation, latency was measured as the time elapsed between receiving sequentially numbered publications.
@@ -81,20 +71,16 @@ MELON does show higher average latency rates in the static scenario, although fo
 
 \begin{figure}
 \centering
-
-\begin{subfigure}{.5\textwidth}
-\centering
 \includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/throughput_static.pdf}
-\caption{Static Scenario}
+\caption{Message Throughput - Static Scenario}
 \label{fig:throughputstatic}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
+\end{figure}
+
+\begin{figure}
 \centering
 \includegraphics[width = \linewidth, clip, trim = 0px 0px 0px 0px]{figures/throughput_mobile.pdf}
-\caption{Mobile Scenario}
+\caption{Message Throughput - Mobile Scenario}
 \label{fig:throughputmobile}
-\end{subfigure}
-\caption{Message Throughput}
 \end{figure}
 
 Throughput in these experiments was measured on the receiver side in terms of messages delivered per second. As in the other experiments, 1,000 messages with a 1kb payload are output by one host, while the other hosts read the messages one at a time. Figures \ref{fig:throughputstatic} and \ref{fig:throughputmobile} show the average throughput as the number of receivers increases.
