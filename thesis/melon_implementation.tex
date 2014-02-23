@@ -55,4 +55,11 @@ Determining if a message [\textit{P}, \textit{M}] is in the set is accomplished 
 
 \section{Message Replication}
 
+Message replication may be implemented as an additional feature of MELON without adding any new operations. Distributing copies of messages to multiple hosts can increase message availability even in the face of network partitioning. However, only read-only messages may be replicated. Since take-only messages may only be taken once, atomic removals would need to be coordinated across all hosts with a replicated copy of the removed message. In a MANET, this is not practical and in many cases it will not be possible. A node containing a replicated message may leave the network with it and never return.
+
+Read-only messages are intended to be read by multiple hosts and cannot be explicitly removed, making them candidates for replication. 
+
 \section{Garbage Collection}
+
+Storage space in MELON is explicitly bounded, which means applications can expect messages to be garbage collected from the shared message store if 
+
