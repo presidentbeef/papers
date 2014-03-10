@@ -1,4 +1,4 @@
-\chapter{Evaluation}
+\chapter{Evaluation}\label{chapter:evaluation}
 
 \section{Performance Analysis}
 
@@ -140,3 +140,12 @@ Median time between sending and receiving a message is reported in Figure \ref{f
 
 Logically, delivery rates and latency are directly related. With reliable delivery some messages may be very late, increasing overall latency. On the other hand, dropped messages do not count towards the latency metric, so a lossy communication paradigm can appear to be very fast. MELON errs on the side of reliability, and therefore is a bit slower as the network becomes less reliable and more delivery attempts are required. There is an additional trade-off that pull-based paradigms like MELON and tuple spaces must make, which is the frequency of the pull attempts. Publish/subscribe and RPC may send as soon as a message is ready, but MELON and tuple spaces must continually poll to receive messages. Faster polling results in faster message delivery, but higher overall network usage, collisions and resource monopolization.
 
+\section{Suitability for MANET Applications}
+
+\subsection{Disconnection Handling}
+
+\subsection{Resource Addressing and Discovery}
+
+\subsection{Flexible Communication}
+
+\subsection{Generality}
