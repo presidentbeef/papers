@@ -4,25 +4,25 @@ Describe here what is meant by "communication paradigms"
 
 \section{Mobile Ad Hoc Network Characteristics}
 
-Describe here the characteristics of MANETs:
+Mobile ad hoc networks (MANETs) are composed of mobile nodes which may join or leave the network at any point. These nodes are typically small and battery-powered, such as smartphones, smart watches, PDAs, tablets, netbooks, or laptops. MANETs are not limited to such small nodes, however. They can include unmanned aerial vehicles (UAVs), passenger vehicles, buses, commercial trucks, and any other kind of mobile device. Typically, though, MANETs are expected to be mostly devices with limited battery, processing power, memory, and storage.
 
-- Mobile nodes
-- Wireless network
-- Decentralized, infrastructureless
-- Typically limited devices
+Besides being mobile, the other main characteristic of MANETs is their communication via an infrastructureless wireless network. In other words, nodes wirelessly communicate directly with each other or by using other nodes to relay messages. The networks are entirely self-organizing and, in the most general case, rely on no access points, cellular towers, or any other type of fixed wireless receiver.
+
+Mobility and wireless are at the root of all of the challenges MANET applications face. The network topology can change rapidly with nodes joining and leaving at any time without warning, leading to lost information and broken network routes. Wireless communication can be disrupted in many ways, including competing broadcasts, physical obstacles, and nodal mobility.
 
 \section{Requirements}\label{sec:manetrecs}
 
+Based on the characteristics of MANETs, we have identified three key challenges when creating applications to operate in MANETs.
+
 \subsection{Disconnection Handling}
 
-Due to the unreliability of wireless communication and the ability of nodes to physically move, applications in MANETs can experience frequent disconnections.
-Unlike traditional distributed computing, which typically views disconnections as exceptional events and errors, applications in MANETs must be able to handle disconnections as part of their normal operation.
+Due to the unreliability of wireless communication and the ability of nodes to physically move, applications in MANETs can experience frequent disconnections. Unlike traditional distributed computing, which typically views disconnections as exceptional events and errors, applications in MANETs must be able to handle disconnections as part of their normal operation.
 
 In a MANET, nodes are highly mobile and disconnections occur frequently, either due to channel condition variation or the mobility of destinations and intermediate nodes. Disconnections may be prolonged, brief, or intermittent and applications must handle all three. Traditional networking treats disconnections as failures, but a programming environment for MANETs needs to handle disconnections as a natural element of the environment.
 
 \subsection{Addressing and Discovery}
 
- The lack of infrastructure in a MANET requires a decentralized method for finding and addressing resources. Traditional approaches such as DNS cannot be maintained in a MANET, so alternative means of discovering and addressing resources must be provided. The spontaneous nature of MANETs also dictates that discovery be dynamic, as the network topology cannot be known ahead of time and may change rapidly.
+The lack of infrastructure in a MANET requires a decentralized method for finding and addressing resources. Traditional approaches such as DNS cannot be maintained in a MANET, so alternative means of discovering and addressing resources must be provided. The spontaneous nature of MANETs also dictates that discovery be dynamic, as the network topology cannot be known ahead of time and may change rapidly.
 
 Unlike a wired network with a fixed infrastructure, MANETs cannot depend on centralized look up services like DNS to find peers. Since devices are constantly joining and leaving the network and it is not possible to maintain IP addresses or URLs to locate resources, applications must be able to locate them dynamically.
 

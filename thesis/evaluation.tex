@@ -1,4 +1,4 @@
-\chapter{Evaluation}\label{chapter:evaluation}
+\chapter{Evaluation of MELON}\label{chapter:evaluation}
 
 \section{Performance Analysis}
 
@@ -140,12 +140,32 @@ Median time between sending and receiving a message is reported in Figure \ref{f
 
 Logically, delivery rates and latency are directly related. With reliable delivery some messages may be very late, increasing overall latency. On the other hand, dropped messages do not count towards the latency metric, so a lossy communication paradigm can appear to be very fast. MELON errs on the side of reliability, and therefore is a bit slower as the network becomes less reliable and more delivery attempts are required. There is an additional trade-off that pull-based paradigms like MELON and tuple spaces must make, which is the frequency of the pull attempts. Publish/subscribe and RPC may send as soon as a message is ready, but MELON and tuple spaces must continually poll to receive messages. Faster polling results in faster message delivery, but higher overall network usage, collisions and resource monopolization.
 
-\section{Suitability for MANET Applications}
+\section{MELON Suitability for MANET Applications}
+
+In the previous chapters, we have noted three important features which we believe should be provided by a general purpose communication paradigm for applications operating in a mobile ad-hoc network: \textit{disconnection handling}, \textit{resource addressing and discovery}, and \textit{flexible communication}. This section examines how well MELON implements these features.
 
 \subsection{Disconnection Handling}
 
+MELON does not have a concept of connections exposed to the application layer. Applications are not affected by disrupted or lost connections, because MELON effectively hides these disconnections in its operations. Since MELON provides spatial decoupling, not only does the application not maintain connections to specific hosts, it is completely unaware of the location of any resources to begin with.
+
+Besides intermittent disconnections which may disrupt communications but from which applications can quickly recover, prolonged disconnections where a node is unreachable for some time (but eventually returns) are also common. The message persistence in MELON provides temporal decoupling between nodes, so that a process on one node may output a message which may be read at any later time, possibly much later. This approach adapts well to the MANET environment, where the network topology may be constantly changing. It allows messages to be received opportunistically instead of only having a chance of receiving the message at the time of sending.
+
+Finally, it is possible to provide some message replication in MELON as discussed in Section \ref{sec:replication} in order to deal with permanent disconnections between nodes. Message replication allows messages to potentially cross network partitions by copying messages to nodes which may then travel to parts of the network unreachable by the original sender. It also increases availability of messages and can improve performance if a cached message is available at a node closer than the original sender.
+
 \subsection{Resource Addressing and Discovery}
+
+Resources in MELON are messages, which may be read or retrieved by matching their content with message templates. It is never necessary or even possible to know where messages physically reside, nor any type of identifier (e.g., an IP address) for the host. In MANETs, this is an important feature because it allows resources to be independent of physical location.
+
+In some traditional distributed systems, there is a centralized directory or index of resources. In MANETs, any type of centralized system is difficult to maintain, since the nodes may leave the network at any point and without any warning. A decentralized index is possible, but quickly becomes challenging since information needs to be migrated as nodes join and leave, and it is difficult to have a decentralized index in small networks, such as communication between just two nodes.
+
+Instead of relying on an index or directory, MELON searches for messages entirely on-demand. When a message is requested, each available remote node is queried until the request can be fulfilled. This allows MELON to be entirely distributed and avoids the complexity of maintaining a decentralized index or overlay network.
 
 \subsection{Flexible Communication}
 
-\subsection{Generality}
+To be of use in a wide range of applications, a communication paradigm needs to provide a number of communication patterns. At a minimum, both multicast and unicast communications should be straightforward.
+
+MELON's \textbf{write}/\textbf{read} operations provide ``enforced" multicast communication, in the sense that not only can any number of processes read the messages, but the messages also remain available for reading until garbage collected. Messages exchanged via \textbf{store}/\textbf{take} are similarly available to any process, but only one process may ultimately receive the message. This could be considered something like anycast. MELON also makes a provision for private unicast communication. When a message is sent with a \textbf{store} operation, it may also be addressed to a specific receiver. This receiver is the only process which may \textbf{take} the message.
+
+MELON also supports receiving messages in bulk, which is a more efficient method for transferring many messages in a single operation. Because MELON only retrieves each message once, it can safely be used to gather all matching messages in bulk without requiring the shared message store to be static.
+
+In all its operations, MELON enforces ordering at the host level. In other words, messages from a single host are received in the order they were sent. While this does not impose an ordering across hosts, it is still very useful in instances where messages are streamed or when messages are aggregated per host.
