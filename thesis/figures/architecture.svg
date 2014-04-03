@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="15cm" height="16cm" viewBox="4 1 15 16">
+  <rect style="fill: #e5e5e5" x="5.0025" y="14.175" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #e5e5e5" x="5.0025" y="14.175" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: #e5e5e5" x="5.0025" y="9.4375" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #e5e5e5" x="5.0025" y="9.4375" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: #e5e5e5" x="5.0025" y="1.8125" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #e5e5e5" x="5.0025" y="1.8125" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: #e5e5e5" x="5.0025" y="4.6875" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #e5e5e5" x="5.0025" y="4.6875" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: #cceafa" x="4.685" y="1.45" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="4.685" y="1.45" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <text style="fill: #000000; font-size: 1.1 cm; length: 5.12 cm; font-family: sans; font-style: normal; font-weight: 700" x="9.225" y="3">Application</text>
+  <rect style="fill: #d7ffdd" x="4.685" y="4.295" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="4.685" y="4.295" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <text style="fill: #000000; font-size: 1.1 cm; length: 12.49 cm; font-family: sans; font-style: normal; font-weight: 700" x="5.54" y="5.845">Communication Component</text>
+  <rect style="fill: #e6d8ad" x="4.685" y="9.045" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="4.685" y="9.045" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <text style="fill: #000000; font-size: 1.1 cm; length: 9.0375 cm; font-family: sans; font-style: normal; font-weight: 700" x="7.26625" y="10.595">Real Wired Network</text>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x1="11.785" y1="7.745" x2="11.785" y2="8.495"/>
+  <polygon style="fill: #000000" points="12.035,7.745 11.785,7.245 11.535,7.745 "/>
+  <polygon style="fill: #000000" points="11.535,8.495 11.785,8.995 12.035,8.495 "/>
+  <rect style="fill: #e6bbad" x="4.685" y="13.7927" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <rect style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x="4.685" y="13.7927" width="14.2" height="2.9" rx="1.17549e-38" ry="1.17549e-38"/>
+  <text style="fill: #000000; font-size: 1.1 cm; length: 12.5325 cm; font-family: sans; font-style: normal; font-weight: 700" x="5.51875" y="15.3427">Emulated Wireless Network</text>
+  <line style="fill: none; fill-opacity:0; stroke-width: 0.1; stroke: #000000" x1="11.785" y1="12.495" x2="11.785" y2="13.2427"/>
+  <polygon style="fill: #000000" points="12.035,12.495 11.785,11.995 11.535,12.495 "/>
+  <polygon style="fill: #000000" points="11.535,13.2427 11.785,13.7427 12.035,13.2427 "/>
+</svg>
