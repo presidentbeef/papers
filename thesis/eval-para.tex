@@ -40,7 +40,7 @@ The multiple read problem \cite{mrdp} is specific to tuple spaces: in a situatio
 
 One solution is to use a single tuple as a mutex, lock the tuple space, remove all matching tuples with \textbf{in}, then replace them in the tuple space. However, this ruins any concurrency the tuple space could have had with multiple readers.
 
-Another solution is to provide a bulk \textbf{rd} operation to return all matching tuples. However, once a ``snapshot'' of the tuple space has been taken with a bulk \textbf{rd}, new matching tuples may be introduced. A second bulk \textbf{rd} would return both the old (already seen) tuples and the new tuples. A similar suggestion from \cite{edwards2001jini} is to remove all matching tuples inside a transaction, then abort the transaction in order to actually leave the tuple space unmodified. However, this again leaves the problem of separating new tuples from previously-read tuples.
+Another solution is to provide a bulk \textbf{rd} operation to return all matching tuples. However, once a ``snapshot'' of the tuple space has been taken with a bulk \textbf{rd}, new matching tuples may be introduced. A second bulk \textbf{rd} would return both the old (already seen) tuples and the new tuples. A similar suggestion from \cite{edwards2001jini} is to remove all matching tuples inside a transaction, then abort the transaction in order to actually leave the tuple space unmodified. Unfortunately, this again leaves the problem of separating new tuples from previously-read tuples.
 
 \subsection{Paradigm Implementation}
 
@@ -137,14 +137,14 @@ Tuple spaces require the same number of messages as RPC, but the overhead is 2.3
 
 \begin{figure}
 \centering
-\includegraphics[width = .48\textwidth]{figures/message-overhead-bytes.pdf}
+\includegraphics{figures/message-overhead-bytes.pdf}
 \caption{Bytes per Message}
 \label{fig:overhead-bytes}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[width = .48\textwidth]{figures/message-overhead-packets.pdf}
+\includegraphics{figures/message-overhead-packets.pdf}
 \caption{TCP Packets per Message}
 \label{fig:overhead-packets}
 \end{figure}
@@ -190,21 +190,21 @@ Since tuple spaces only support pull operations, the situation is inverted. Rece
 
 \begin{figure}
 \centering
-\includegraphics[width = 0.49\textwidth, clip, trim = 0px 400px 0px 400px]{figures/single-hop-group-delivery.pdf}
+\includegraphics[width = \textwidth, clip, trim = 0px 400px 0px 400px]{figures/single-hop-group-delivery.pdf}
 \caption{Message Delivery - Single Hop}
 \label{fig:sgdel}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[width = 0.59\textwidth, clip, trim = 0px 0px 0px 0px]{figures/multi-hop-group-delivery.pdf}
+\includegraphics[width = \textwidth, clip, trim = 0px 0px 0px 0px]{figures/multi-hop-group-delivery.pdf}
 \caption{Message Delivery - Multihop}
 \label{fig:mhgdel}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[width = 0.40\textwidth, clip, trim = 0px 0px 0px 0px]{figures/mobile-group-delivery.pdf}
+\includegraphics[width = 0.70\textwidth, clip, trim = 0px 0px 0px 0px]{figures/mobile-group-delivery.pdf}
 \caption{Message Delivery - Mobile}
 \label{fig:mgdel}
 \end{figure}
@@ -223,16 +223,16 @@ This contributes to tuple spaces showing the lowest delivery ratio (93\%) in the
 Figure \ref{fig:tuple-failure} illustrates why this is the case. The interaction in the ideal scenario assumes the sender and receiver are present for the entire interaction. In the second scenario, however, the receiver moves away from the sender after sending the initial request for an outgoing tuple. In step 3, the sender sends the reply request, but it cannot be delivered. When the receiver returns, it repeats its request for an outgoing tuple, because it is a blocking request which has not yet been satisfied. The sender satisfies the request, but the reply is never sent since the receiver never receives the reply request.
 
 \begin{figure}
-\mbox {
-	\subfigure[Ideal Scenario] {
-		\includegraphics[scale = .40 , clip, trim = 0px 400px 500px 35px]{figures/tuple-failure.pdf}
-	}
-	
-	\subfigure[Failure Scenario] {
-		\includegraphics[scale = .40 , clip, trim = 0px 180px 450px 230px]{figures/tuple-failure.pdf}
-	}
-}
-\caption{Tuple Space Round Trip Application}
+\centering
+\includegraphics[scale = 1 , clip, trim = 0px 400px 500px 35px]{figures/tuple-failure.pdf}
+\caption{Tuple Space Ideal Scenario}
+\label{fig:tuple-success}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale = 1 , clip, trim = 0px 180px 450px 230px]{figures/tuple-failure.pdf}
+\caption{Tuple Space Failure Scenario}
 \label{fig:tuple-failure}
 \end{figure}
 
@@ -307,17 +307,15 @@ In the results below, a single user is updating the whiteboard and the updates a
 Furthermore, we tested the whiteboard application under the two different routing protocols we have been using, AODV and DSR. This is not meant to be an exhaustive comparison of the routing protocols themselves, but is intended to show how the choice in routing protocols might affect the performance of the communication models in a nontrivial application.
 
 \begin{figure}
-\centering
-\mbox {
-	\subfigure[DSR] {\label{fig:wbdeliverydsr}
-	\includegraphics[width = .55\textwidth, clip, trim = 6px 0px 4px 0px]{figures/wb-dsr-delivery.pdf}
-	}
+\label{fig:wbdeliverydsr}
+\includegraphics[width = .9\textwidth, clip, trim = 6px 0px 4px 0px]{figures/wb-dsr-delivery.pdf}
+\caption{Whiteboard Message Delivery (DSR)}
+\end{figure}	
 
-	\subfigure[AODV] {\label{fig:wbdeliveryaodv}
-	\includegraphics[width = .41\textwidth, clip, trim = 6px 0px 2px 0px]{figures/wb-aodv-delivery.pdf}
-	}
-}
-\caption{Whiteboard Message Delivery}
+\begin{figure}
+\label{fig:wbdeliveryaodv}
+\includegraphics[width = .9\textwidth, clip, trim = 6px 0px 2px 0px]{figures/wb-aodv-delivery.pdf}
+\caption{Whiteboard Message Delivery (AODV)}
 \end{figure}
 
 \paragraph{Message Reliability}
@@ -332,19 +330,17 @@ While the choice of routing protocol can have a significant effect on the paradi
 
 \begin{figure}
 \centering
-
-\mbox {
-	\subfigure[DSR] {\label{fig:wbdelaydsr}
-	\includegraphics[width = .49\textwidth, clip, trim = 6px 0px 4px 3px]{figures/wb-dsr-delay.pdf}
-	}
-
-	\subfigure[AODV] {\label{fig:wbdelayaodv}
-	\includegraphics[width = .49\textwidth, clip, trim = 6px 0px 2px 3px]{figures/wb-aodv-delay.pdf}
-	}
-}
-\caption{Whiteboard Message Delay}
+\label{fig:wbdelaydsr}
+\includegraphics[scale = 1, clip, trim = 6px 0px 4px 3px]{figures/wb-dsr-delay.pdf}
+\caption{Whiteboard Message Delay (DSR)}
 \end{figure}
 
+\begin{figure}
+\centering
+\label{fig:wbdelayaodv}
+\includegraphics[scale = 1, clip, trim = 6px 0px 2px 3px]{figures/wb-aodv-delay.pdf}
+\caption{Whiteboard Message Delay (ADOV)}
+\end{figure}
 
 \paragraph{Message Delay}
 
@@ -361,21 +357,21 @@ From the mobile reliability results, we can infer that DSR does not maintain via
 
 \begin{figure}
 \centering
-\includegraphics[scale = .75]{figures/single-hop-routing.pdf}
+\includegraphics[scale = 1]{figures/single-hop-routing.pdf}
 \caption{Whiteboard Routing Overhead - Single Hop}
 \label{fig:wbrouting-sh}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[scale = .75]{figures/multi-hop-routing.pdf}
+\includegraphics[scale = 1]{figures/multi-hop-routing.pdf}
 \caption{Whiteboard Routing Overhead - Multihop}
 \label{fig:wbrouting-mh}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[scale = .75]{figures/mobile-routing.pdf}
+\includegraphics[scale = 1]{figures/mobile-routing.pdf}
 \caption{Whiteboard Routing Overhead - Mobile}
 \label{fig:wbrouting-m}
 \end{figure}

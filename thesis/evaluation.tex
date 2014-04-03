@@ -94,34 +94,32 @@ Despite having higher average latency than the other paradigms, MELON demonstrat
 
 For each implementation, we measured the number of messages lost, the number of messages received out of order, and the message latency. For out-of-order messages, we divided it into two metrics: host out-of-order and global out-of-order. Host out-of-order messages are messages from a single host which are not received in the order sent. Global out-of-order messages are those received before their preceding message. For example, if node A receives a message \textit{m}$_{1}$ from node B, then sends \textit{m}$_{2}$. If node C receives \textit{m}$_{2}$ prior to \textit{m}$_{1}$, \textit{m}$_{2}$ will be considered out of order.
 
-\begin{figure}[ht]
+\begin{figure}
 \centering
-\begin{minipage}[b]{0.48\linewidth}
 \includegraphics[width = \textwidth]{figures/hooo.pdf}
 \caption{Host Out-of-Order Messages}
 \label{fig:hooo}
-\end{minipage}
-\quad
-\begin{minipage}[b]{0.48\linewidth}
+\end{figure}
 
+\begin{figure}
+\centering
 \includegraphics[width = \textwidth]{figures/latency.pdf}
 \caption{Message Latency}
 \label{fig:latency}
-\end{minipage}
 \end{figure}
-\begin{figure}[ht]
+
+\begin{figure}
 \centering
-\begin{minipage}[b]{0.48\linewidth}
 \includegraphics[width = \textwidth]{figures/gooo.pdf}
 \caption{Global Out-of-Order Messages}
 \label{fig:gooo}
-\end{minipage}
-\quad
-\begin{minipage}[b]{0.48\linewidth}
+\end{figure}
+
+\begin{figure}
+\centering
 \includegraphics[width = \textwidth]{figures/delivery.pdf}
 \caption{Delivery Rates}
 \label{fig:delivery}
-\end{minipage}
 \end{figure}
 
 In our experiments, messages from a single host were generally delivered in the order they were sent as shown in Figure \ref{fig:hooo}. For MELON and tuple spaces, no messages were delivered out of order. However, it should be noted that for tuple spaces this is an accident of the implementation, whereas in MELON it is guaranteed. In LighTS, tuples are sequentially stored locally in an array in the order they are output, then returned in that same order when they are matched. Tuple spaces in general do not return matched messages in any particular order.

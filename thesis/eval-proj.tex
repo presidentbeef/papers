@@ -74,20 +74,15 @@ Code migration, the approach used by SpatialViews, does not maintain connections
 
 A third approach, implemented in AmbientTalk, relies on event handling and futures. Event handlers can be registered for various events, such as discovery of a service or disconnection of a remote object. Figure~\ref{fig:atpd} illustrates the use of two of these callbacks to discover a printer service. Once a printer is discovered, a document is sent to be printed and a status message is returned.  If a remote object is discovered and later moves out of range, AmbientTalk can call the disconnection code. By default, messages sent to a disconnected remote object will be buffered until it is possible to send them. This provides a solution for intermittent and even prolonged disconnections. If a remote object is disconnected for too long, the programmer can recall all buffered messages and close the connection.
 
-\begin{figure}
-\centering
-\begin{verbatim}
-1. def print(doc) {
-2.  when: Printer discovered: { |printer|
-3.    when: (printer<-print(doc)) becomes: {|res|
-4.      system.println("Status: " + res);
-5.    };
-6.  };
-7. };
-\end{verbatim}
-\caption{Printer Discovery in AmbientTalk}
-\label{fig:atpd}
-\end{figure}
+\begin{lstlisting}[caption={Printer Discovery in AmbientTalk}, label={fig:atpd}]
+ def print(doc) {
+  when: Printer discovered: { |printer|
+    when: (printer<-print(doc)) becomes: {|res|
+      system.println("Status: " + res);
+    };
+  };
+ };
+\end{lstlisting}
 
 AmbientTalk also offers AmbientReferences\cite{ambientrefs}, which are related to the M2MI model of object handles.  AmbientReferences have a specified flexibility which determines how disconnections are handled. Sturdy is the default model of using buffered messages which will be delivered upon reconnection. Elastic references wait a specified amount of time before severing the connection and rebinding to another object of the same type. Fragile references will break immediately upon disconnection and rebind to another object as quickly as possible.
 
@@ -105,18 +100,13 @@ Object types for discovery and addressing is used by M2MI, AmbientTalk, and Spat
 
 SpatialViews uses object types along with spacial properties to define a ``view" of the network. Once a view is created containing a given object type, SpatialViews provides a method of iterating over the available nodes within that view. The code within the iterator is executed locally on the remote devices. After the code is run, the device locates another nearby node hosting an object of the correct type and the code migrates there. Within the iteration, the code can synchronously invoke methods on the local service through an object handle. In Figure~\ref{fig:svsm}, a simple SpatialView is created to broadcast a message in a chat application. The code within the \texttt{visiteach} block (line 4) is executed locally. Therefore, unlike the AmbientTalk printer example, \texttt{c.receive(...)} is a local method call, not a remote call.
 
-\begin{figure}
-\centering
-\begin{verbatim}
-1. spatialview v = ChatService;
-2.
-3. visiteach c : v {
-4.   c.receive(sender, message);
-5. }
-\end{verbatim}
-\caption{Simple Messaging in SpatialViews}
-\label{fig:svsm}
-\end{figure}
+\begin{lstlisting}[caption={Simple Messaging in SpatialViews}, label={fig:svsm}]
+ spatialview v = ChatService;
+
+ visiteach c : v {
+   c.receive(sender, message);
+ }
+\end{lstlisting}
 
 SyD also uses objects to invoke remote services, but it requires that these objects register themselves with neighboring devices, as well as locally. \begin{comment}YCab is interesting in that it allows applications to detect nearby sessions, then suggest a handle for themselves. If the handle is unique in the session, the client is allowed to join, otherwise the client is rejected. \end{comment}
 
@@ -132,41 +122,31 @@ M2MI and AmbientTalk support object references which can refer to all objects of
 
 Communication in SpatialViews is done through code and variable migration. This makes it very simple to perform complex group operations such as reductions over several devices, but it makes one-to-one communication difficult. Figure~\ref{fig:svpd} shows how it is necessary to set a variable to ensure a document is only printed by a single printer. There is also no method to provide reliable message delivery, other than iterating until a prearranged flag is set.
 
-\begin{figure}
-\centering
-\begin{verbatim}
-1. Container result = new Container();
-2. spatialview v = Printer;
-3. visiteach p : v {
-4.    if(result.isEmpty()) {
-5.       String result = p.print(document);
-6.	    if(result == "success")
-7.	       result.addElement(p.getName());
-8.    }
-9. }
-\end{verbatim}
-\caption{Printer Discovery in SpatialViews}
-\label{fig:svpd}
-\end{figure}
+\begin{lstlisting}[caption={Printer Discovery in SpatialViews}, label={fig:svpd}]
+ Container result = new Container();
+ spatialview v = Printer;
+ visiteach p : v {
+    if(result.isEmpty()) {
+       String result = p.print(document);
+	    if(result == "success")
+	       result.addElement(p.getName());
+    }
+ }
+\end{lstlisting}
 
 Similarly, publish/subscribe naturally supports group communication, but attempting to send a message to a particular recipient is not directly supported by the middleware. Publish/subscribe is intended to be used in situations with a single sender and multiple receivers and does not adapt well to sending a message to a single receiver. To do so would require the sender and receiver using a predefined addressing, similar to setting an agreed-upon tuple value in tuple spaces. Successful message delivery in the publish/subscribe is less likely than in a tuple space, since messages are not persistent in the way that tuples are.
 
-\begin{figure}
-\centering
-\begin{verbatim}
-1. LimeTupleSpace lts = 
-2.   new LimeTupleSpace();
-3. lts.setShared(true);
-4. ITuple printjob = 
-5.   new Tuple().addFormal(PrintJob.class);
-6. UbiquitousReaction ur = 
-7.   new UbiquitousReaction(printjob, 
-8.     this, Reaction.ONCEPERTUPLE);
-9. lts.addWeakReaction(new Reaction[] {ur});
-\end{verbatim}
-\caption{LIME: Print Job Reaction}
-\label{fig:lpj}
-\end{figure}
+\begin{lstlisting}[caption={LIME: Print Job Reaction}, label={fig:lpj}]
+ LimeTupleSpace lts = 
+   new LimeTupleSpace();
+ lts.setShared(true);
+ ITuple printjob = 
+   new Tuple().addFormal(PrintJob.class);
+ UbiquitousReaction ur = 
+   new UbiquitousReaction(printjob, 
+     this, Reaction.ONCEPERTUPLE);
+ lts.addWeakReaction(new Reaction[] {ur});
+\end{lstlisting}
 
 \subsection{Applications}
 
@@ -203,23 +183,20 @@ SpatialViews suffers from the same issue in the printer discovery example: if th
 
 Addressing is handled similarly to the printer discovery example, except the user needs to know the names of other users when sending private messages. The AmbientTalk version notifies the user when other clients come into range and adds their name and object handle to a list. Figure~\ref{fig:svchat} shows the implementation of the methods for sending out messages. Public messages are sent out to an AmbientReference, defined in line 1, which only needs to know the interface name and implicitly tracks individual clients.
 
-\begin{figure}
-\centering
-\begin{verbatim}
- 1. def all := ambient: Chatter 
- 2.     withCardinality: omni 
- 3.    withElasticity: fragile;
- 4. def sendAll(message) {
- 5.   all<-send(message, name);
- 6. };
- 8. def send(buddy, message) {
- 9.   def b := buddy_list.get(buddy);
-10.   b<-send_private(message, name);
-11. };
-\end{verbatim}
-\caption{Chat in SpatialViews}
-\label{fig:svchat}
-\end{figure}
+\begin{lstlisting}[caption={Chat in SpatialViews}, label={fig:svchat}]
+def all := ambient: Chatter 
+    withCardinality: omni 
+    withElasticity: fragile;
+
+def sendAll(message) {
+  all<-send(message, name);
+};
+
+def send(buddy, message) {
+  def b := buddy_list.get(buddy);
+  b<-send_private(message, name);
+};
+\end{lstlisting}
 
 SpatialViews, like in the printer discovery application, iterates over all nodes with the chat interface, delivering the message to each as it visits. This is shown in Figure~\ref{fig:svchat}. For private messages, it still must iterate in the same manner, but the recipient is encoded in the message. Unfortunately, this means private messages still require visiting every node, possibly without even reaching the recipient in the case of disconnection. Likewise, LIME must rely on encoding the recipient in the message tuple and assuming no one but the intended client will read the message.
 
@@ -234,13 +211,14 @@ The wired LAN environment provides a nearly ideal network in which the cost of c
 The results using EXata more accurately reflect the MANET environment. For these experiments, all communication was performed through EXata, which emulated an 802.11b ad hoc wireless network with an available bandwidth of 11Mb/s.
 
 \begin{figure}
-\includegraphics[scale = .70]{figures/overhead-wired.pdf}
+\centering
+\includegraphics{figures/overhead-wired.pdf}
 \caption{Communication Overhead with Wired Links}
 \label{fig:overhead-wired}
 \end{figure}
 
 \begin{figure}
-\includegraphics[scale = .70]{figures/overhead-qualnet.pdf}
+\includegraphics{figures/overhead-qualnet.pdf}
 \caption{Communication Overhead with Simulated Wireless Links}
 \label{fig:overhead-qualnet}
 \end{figure}
@@ -254,17 +232,18 @@ AmbientTalk has the lowest overhead, as it is simply performing a method call on
 Although the results were similar in the wired LAN and EXata, the performance of SpatialViews was considerably slower, peaking at 20 msgs/s, while in the wired LAN it was possible to reach 117 msgs/s. This is due to contention for the wireless channel. It is also worth considering that LIME and AmbientTalk use asynchronous messages while SpatialViews uses a blocking synchronous message send. This allows LIME and AmbientTalk to take advantage of system level buffers, while SpatialViews cannot.
 
 \begin{figure}
-\includegraphics[scale = .70]{figures/multicast-wired.pdf}
+\centering
+\includegraphics{figures/multicast-wired.pdf}
 \caption{Group Communication with Wired Links}
 \label{fig:multicast-wired}
 \end{figure}
 
 \begin{figure}
-\includegraphics[scale = .70]{figures/multicast-qualnet.pdf}
+\centering
+\includegraphics{figures/multicast-qualnet.pdf}
 \caption{Group Communication with Simulated Wireless Links}
 \label{fig:multicast-qualnet}
 \end{figure}
-
 
 \subsubsection{Group Communication}
 
@@ -277,19 +256,22 @@ When run using EXata, the effect of using the wireless channel is seen again. Th
 \subsubsection{Mobility and Disconnection}
 
 \begin{figure}
-\includegraphics[scale = .70]{figures/disconnection.pdf}
+\centering
+\includegraphics{figures/disconnection.pdf}
 \caption{Disconnection Recovery}
 \label{fig:disconnection}
 \end{figure}
 
 \begin{figure}
-\includegraphics[scale = .70]{figures/network.pdf}
+\centering
+\includegraphics{figures/network.pdf}
 \caption{Simulated Mobility Scenario}
 \label{fig:network}
 \end{figure}
 
 \begin{figure}
-\includegraphics[scale = .70]{figures/mobility-results.pdf}
+\centering
+\includegraphics{figures/mobility-results.pdf}
 \caption{Client-Server Throughput with Mobility}
 \label{fig:mobility-results}
 \end{figure}
