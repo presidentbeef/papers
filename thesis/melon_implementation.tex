@@ -15,7 +15,9 @@ Local storage is implemented simply as two dynamic arrays, one for write/read me
 
 \section{Networking}
 
-Network communication is handled using ZeroMQ\cite{hintjens2013zeromq}, a high performance high level networking library. For the prototype, the network communication was intentionally kept simple. For example, a \textbf{read} request queries remote hosts in a random order and stops when a matching result is returned. While it is possible to improve this using multicast, it would greatly complicate the implementation by requiring the client to handle multiple asynchronous responses, choose between them, request the actual matching message, and then handle failure scenarios if the matching message cannot be returned. Our approach was to trade off potential performance gains for simplicity.
+Network communication is handled using ZeroMQ\cite{hintjens2013zeromq}, a high performance high level networking library. For the prototype, the network communication was intentionally kept simple. For example, a \textbf{read} request queries remote hosts in a random order and stops when a matching result is returned. For bulk operations, the prototype implementation also queries remote hosts in random order, but continues fetching results until all hosts have either returned a response or a timeout is reached.
+
+While it is possible to improve upon this approach using multicast, it would greatly complicate the implementation by requiring the client to handle multiple asynchronous responses, choose between them, request the actual matching message, and then handle failure scenarios if the matching message cannot be returned. Our approach was to trade off potential performance gains for simplicity.
 
 \section{Read Message Tracking}
 
@@ -55,11 +57,32 @@ Determining if a message [\textit{P}, \textit{M}] is in the set is accomplished 
 
 \section{Message Replication}
 
-Message replication may be implemented as an additional feature of MELON without adding any new operations. Distributing copies of messages to multiple hosts can increase message availability even in the face of network partitioning. However, only read-only messages may be replicated. Since take-only messages may only be taken once, atomic removals would need to be coordinated across all hosts with a replicated copy of the removed message. In a MANET, this is not practical and in many cases it will not be possible. A node containing a replicated message may leave the network with it and never return.
+Distributing copies of messages to multiple hosts can increase message availability when a host is temporarily unavailable, under heavy load, or even in the face of network partitioning. Additionally, it can improve performance if messages can be fetched from a nearer host or from multiple hosts in parallel. While not a requirement of the MELON paradigm, message replication may be implemented as an additional feature of MELON without adding any new operations although it does add complexity.
 
-Read-only messages are intended to be read by multiple hosts and cannot be explicitly removed, making them candidates for replication. 
+Take-only messages are generally not eligible for replication since their removal must be atomic. Coordinating removals for all replicated copies is not only impractical, it is impossible if a node containing a replicated message leaves the network. Read-only messages, however, are expected to be read many times and cannot be explicitly removed, making them a candidate for replication.
+
+FIFO order (per host) must be maintained no matter which host may actually return the messages. When each host manages its own stored messages, ordering is easily accomplished. When messages are distributed and multiple copies of the same message are available from different hosts the problem is more challenging. However, each host is still aware of the order in which the messages should be returned.
+
+Instead of sending a request for matching messages, a process requests a list of message IDs which would have fulfilled the request, in order. Each host responds with a list of matching message IDs, but only for messages output by that host. The requesting process can then request messages by ID rather than message templates. Any host may return the actual messages, either the original message or replicas. Since the requesting process will be aware of the correct ordering, it can ensure the FIFO ordering is maintained when returning messages to the application.
+
+This approach still requires the original host to be available when the first request is sent, and it is limited to fetching messages which have already been output at the time of the request. As such, it is best fitted to bulk retrieval (\textbf{bulk\_read}) of messages.
+
+One other type of message may be replicated. Take-only messages which are addressed to a specific receiver may also be safely replicated since they may only be removed by that receiver. The receiver can track which directed messages it has already taken and simply discard duplicates. Replicating messages which will only be needed once seems wasteful, though, except in the case where delivery of private messages is critical.
+
+In any scenario, replicated messages would need to be kept in a separate storage from regularly output messages. Replicated messages would only be returned to requests by message ID or for directed take-only messages. A background process would be needed to replicate the messages out to different hosts. A mechanism would also be needed to determine when to replicate the messages, and when to garbage collect replicas. Overall, message replication requires a considerable amount of added complexity and overhead to MELON.
 
 \section{Garbage Collection}
 
-Storage space in MELON is explicitly bounded, which means applications can expect messages to be garbage collected from the shared message store if 
+The MELON model explicitly acknowledges memory and storage are especially limited on mobile devices. For simplicity, in this section we consider this to be an absolute limit on the number of messages to be stored at any time. This is inexact in relation to the actually memory used since messages may vary in size.
 
+Since MELON persists messages and read-only messages cannot be removed by applications, it would not be difficult for an application to exhaust available space on a device. This is an issue for any paradigm which persists its messages but most proposals do not address it. When there is no more space to store a message, a communication paradigm implementation may crash, raise an exception, simply drop the message, or perform garbage collection to remove existing messages and free space for new ones.
+
+To offset its otherwise permanent storage of read-only messages, MELON implementations should have a mechanism to remove old messages. MELON's requirements for garbage collection straddle memory management garbage collection and cache eviction. In memory management, any references to a value in memory will require it to be kept, but MELON messages do not have direct references and we cannot know which messages may be needed in the future. This is similar to maintaining a cache, in which the same limitation of knowledge applies. Unlike a cache, there are generally no other copies of the message available to fall back upon. Once evicted from the MELON store, the message is lost.
+
+First-in first-out (FIFO) and least-recently used (LRU) are basic strategies for choosing which messages to replace in storage. For MANET applications, there is often a few messages which are expected to be available for extended periods of time - for example, messages containing identity of nodes or other static data. This suggests simply discarding the oldest messages might not be the best approach. When evicting by LRU, it is necessary to track the last access time for each message. When deciding which messages to remove, the LRU policy drops the messages with the oldest access time. This is probably a good fit for MELON, but there are also more sophisticated variants on LRU which may be useful. Determining what replacement strategy is best for MELON is a topic for future work.
+
+Besides determining which messages should be removed from storage, it is also necessary to have a policy for when to perform garbage collection. Unlike memory garbage collection, MELON garbage collection is not expected to have a significant impact on performance. MELON garbage collection does require locking the store to actually remove the messages, but the determination of which messages to remove may be performed without locking since it does not need to be exact. One approach is to only perform garbage collection when the message limit is actually reached, then to remove either a single message or a percentage of messages. Removing more messages reduces frequency of garbage collection, but increases the time spent removing messages each time.
+
+Since MELON messages need to be stored in FIFO order, garbage collection does require some form of compacting to ensure new messages may be added at the end of the queue.
+
+Fitting the best garbage collection strategy to MELON remains as future work.
