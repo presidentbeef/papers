@@ -1,3 +1,147 @@
 \appendix
-\chapter{News Server \& Reader Applications}
-\chapter{Chat Application}
+\chapter{Full Application Examples}
+
+The following sections provide a demonstration of working code using the current MELON library implementation in JRuby.
+
+\section{News Server \& Reader Applications}
+
+\begin{lstlisting}[caption={News Reader}, label={code:newsserverfull}]
+require "melon"
+
+# Initialize MELON
+melon = Melon.with_zmq
+
+# Initialize potential topics
+topics = ["Politics", "Sports", "Business", "Technology", "Local"]
+
+i = 0
+
+loop do
+  # Choose a topic
+  topic = topics.sample
+  
+  # Generate headline for topic
+  message = [topic, "#{topic} news item #{i+=1}"]
+  
+  # Write message
+  melon.write message
+  
+  # Pause for a few seconds
+  sleep rand(5)
+end
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={News Reader}, label={code:newsreaderfull}]
+require "melon"
+
+unless ARGV[2]
+  abort "news_reader.rb ADDRESS PORT TOPIC"
+end
+
+address = ARGV[0]
+port = ARGV[1]
+topic = ARGV[2]
+
+# Initialize MELON
+melon = Melon.with_zmq
+
+# Add address of a news server
+melon.add_remote port, address
+
+# Set the template to retrieve a headline for the
+# given topic
+template = [topic, String]
+
+# Read all relevant messages as they become available
+loop do
+  puts melon.read_all template
+end
+\end{lstlisting}
+
+\section{Chat Application}
+
+This example splits the implementation of a chat application into a library which provides most of the functionality and a small script to set up the environment for the user.
+
+\begin{lstlisting}[caption={Chat Library}, label={code:chatlibfull}]
+# Encapsulate chat communication
+class Chat
+  def initialize name
+    @name = name
+    @melon = Melon.with_zmq
+  end
+
+  def add_remote port
+    @melon.add_remote port
+  end
+  
+  # Write out a chat message
+  def chat message
+    @melon.write [@name, message]
+  end
+
+  # Get all unseen messages
+  def read_messages
+    @melon.read_all [String, String]
+  end
+ 
+  # Print out all messages except our own  
+  def print_messages messages
+    messages.each do |name, message|
+      unless name == @name
+        puts "\n<#{name}> #{message}"
+      end
+    end
+  end
+
+  # Read and show messages in a separate thread
+  def monitor
+    Thread.new do
+      loop do
+        print_messages read_messages
+      end
+    end
+  end
+
+  # Main loop for chatting
+  def start
+    monitor
+
+    # Send chat messages from user
+    loop do
+      print "? "
+      message = gets.strip
+
+      unless message.empty?
+        chat message
+      end
+    end
+  end
+end
+\end{lstlisting}
+
+The chat client in Listing \ref{code:chatclientfull} is a simple script to set up a chat client that talks to other local chat clients. This makes it simple to try on a single machine.
+
+\begin{lstlisting}[caption={Local Chat Client}, label={code:chatclientfull}]
+require "melon"
+require "chat"
+
+# Get user's name
+print "Name: "
+name = gets.strip
+
+# Initialize chat library
+chat = Chat.new name
+
+# Add processes running on the same machine but different ports
+loop do
+  print "Remote port: "
+  chat.add_remote gets.strip.to_i
+
+  print "Add another (y/n)? "
+  break unless gets.downcase.start_with? "y"
+end
+
+# Start chatting
+chat.start
+\end{lstlisting}
