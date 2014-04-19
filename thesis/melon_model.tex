@@ -92,7 +92,7 @@ If a message matching the given message template is available, it will be copied
 
 When a matching unread message is not available, behavior of \textbf{read} depends on the \textit{block} argument. If the argument is true or unspecified, the operation will block until a matching message is available, then return that message. If the argument is false, the operation will return a null value.
 
-A message may be \textbf{read} by any number of processes, but only once per process.
+A message may be \textbf{read} by any number of processes, but each process may only read each messages at most once.
 
 \begin{table}
 \centering
