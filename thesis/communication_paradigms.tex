@@ -48,7 +48,7 @@ Both temporal and referential decoupling are preferred in a MANET. If a paradigm
 
 A third type of coupling, synchronization, is mentioned in \cite{psfaces}. If a paradigm implements synchronization decoupling, then the message sender is not blocked when sending a message, and a receiver does not block when waiting for a message. In other words, sending and receiving of messages occurs outside the main thread of the application. Typically this means sending a message returns immediately and received messages are handled asynchronously in a callback method.
 
-\subsection{Publish/Subscribe}
+\subsection{Publish/Subscribe}\label{sec:pubsub}
 
 The \textit{publish/subscribe} paradigm divides processes into publishers and subscribers. In topic-based publish/subscribe, publishers broadcast messages tagged with one or more topics. Subscribers receive the messages by subscribing to one or more topics and specifying a callback to receive the publications asynchronously and separately from the main process thread. Publish/subscribe does not guarantee any ordering of publications nor does it specify how to deliver messages if the subscribers is not available at the time of publication. Publish/subscribe is temporally, referentially, and synchronization decoupled. Messages may be sent and received at any time, and it is possible to handle multiple incoming publications concurrently.
 
@@ -76,7 +76,7 @@ The advantage of M2MI is simplicity. As messages are simply broadcast without ex
 
 AmbientTalk\cite{ambienttalk} is a complete object oriented language inspired in part by M2MI's message passing. AmbientTalk implements a higher level abstraction of resource discovery and disconnection handling which is absent from M2MI, but retains the idea of object handles and remote method invocations. All remote events are handled asynchronously by AmbientTalk through the registration of callbacks. A block of code may be registered to be invoked when discovering a certain resource type. AmbientTalk also adds the ability to receive values from method invocations on remote objects through the use of futures. By default, messages sent to remote objects are buffered until they can be sent. The programmer can also choose to break the connection and recall buffered messages.
 
-\subsection{Tuple Spaces}
+\subsection{Tuple Spaces}\label{sec:tsparadigm}
 
 \textit{Tuple spaces}, introduced in the Linda\cite{linda} coordination language, operate on a distributed shared memory space of typed, ordered tuples. Tuples are sent using the \textbf{out} operation then retrieved by matching templates with \textbf{rd}, which copies the tuple, or \textbf{in}, which atomically removes the tuple from the tuple space. If multiple tuples match, one is chosen nondeterministically. Tuple spaces have strict semantics for \textbf{rd} and \textbf{in}: if a matching tuple exists, it \textit{must} be returned. \textbf{rd} and \textbf{in} are blocking operations, but typically non-blocking versions are provided called \textit{inp()} and \textit{rdp()} which return immediately even if there are no matching tuples.
 

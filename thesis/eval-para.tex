@@ -24,7 +24,7 @@ Publications in publish/subscribe are inherently multicast, since any number of 
 
 Since RPC mimics local method calls, it is natural that RPC is best suited for unicast communication, in which the message is the argument to the method and the return value is the response from the remote host. Assuming multicast RPC functions in the same manner, then a multicast RPC invocation would expect multiple return values, one from each remote host. In a MANET, it is likely not every remote host would reliably return a response, further complicating the semantics. A typical RPC invocation would block waiting for a response, but it is not practical to wait for all responses to a multicast RPC invocation when some responses may never be received. The use of futures or asynchronous callbacks can improve the situation, but causes semantics to differ even more from unicast RPC.
 
-Tuple spaces are naturally multicast, since any number of nodes may read a given tuple. Unicast communication can be achieved by using a field in the tuple as the recipient?s address. The recipient then performs in operations on tuples with their address in order to receive the tuples.
+Tuple spaces are naturally multicast, since any number of nodes may read a given tuple. Unicast communication can be achieved by using a field in the tuple as the recipient's address. The recipient then performs in operations on tuples with their address in order to receive the tuples.
 
 Networked applications also commonly require private, unicast communication. For example: SMS services, direct messaging in social networks, or communication of sensitive data. For our purposes, private communication is the exchange of messages between two parties which cannot be disrupted or eavesdropped upon by a third party from within the context of the paradigm itself. In other words, concerns such as encrypting data or sniffing network traffic would be outside the paradigm context.
 
@@ -307,15 +307,15 @@ In the results below, a single user is updating the whiteboard and the updates a
 Furthermore, we tested the whiteboard application under the two different routing protocols we have been using, AODV and DSR. This is not meant to be an exhaustive comparison of the routing protocols themselves, but is intended to show how the choice in routing protocols might affect the performance of the communication models in a nontrivial application.
 
 \begin{figure}
-\label{fig:wbdeliverydsr}
 \includegraphics[width = .9\textwidth, clip, trim = 6px 0px 4px 0px]{figures/wb-dsr-delivery.pdf}
 \caption{Whiteboard Message Delivery (DSR)}
+\label{fig:wbdeliverydsr}
 \end{figure}	
 
 \begin{figure}
-\label{fig:wbdeliveryaodv}
 \includegraphics[width = .9\textwidth, clip, trim = 6px 0px 2px 0px]{figures/wb-aodv-delivery.pdf}
 \caption{Whiteboard Message Delivery (AODV)}
+\label{fig:wbdeliveryaodv}
 \end{figure}
 
 \paragraph{Message Reliability}
@@ -330,16 +330,16 @@ While the choice of routing protocol can have a significant effect on the paradi
 
 \begin{figure}
 \centering
-\label{fig:wbdelaydsr}
 \includegraphics[scale = 1, clip, trim = 6px 0px 4px 3px]{figures/wb-dsr-delay.pdf}
 \caption{Whiteboard Message Delay (DSR)}
+\label{fig:wbdelaydsr}
 \end{figure}
 
 \begin{figure}
 \centering
-\label{fig:wbdelayaodv}
 \includegraphics[scale = 1, clip, trim = 6px 0px 2px 3px]{figures/wb-aodv-delay.pdf}
 \caption{Whiteboard Message Delay (ADOV)}
+\label{fig:wbdelayaodv}
 \end{figure}
 
 \paragraph{Message Delay}
