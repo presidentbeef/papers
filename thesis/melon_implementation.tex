@@ -1,5 +1,7 @@
 \chapter{MELON Implementation}\label{chapter:implementation}
 
+This chapter describes a prototype implementation of MELON we developed in order to validate our design and obtain empirical performance data.
+
 \section{Architecture}
 
 \begin{figure}
@@ -9,13 +11,41 @@
 \label{fig:architecture}
 \end{figure}
 
-We developed a prototype implementation of MELON to validate our design and obtain empirical performance data. The architecture illustrated in Figure \ref{fig:architecture} is split into five parts. The MELON API is the only interface exposed to the application and provides the six operations described above. The MELON API interacts with the distributed message storage through the storage API, which provides the same interface for both local and remote storage. The storage server proves a network interface to a local storage space and accepts connections made through the remote storage stub.
+The architecture of our MELON implementation illustrated in Figure \ref{fig:architecture} is divided into five parts. The MELON API is the only interface exposed to the application and provides the six operations described above. The MELON API interacts with the distributed message storage through the storage API, which provides the same interface for both local and remote storage. The storage server proves a network interface to a local storage space and accepts connections made through the remote storage stub.
 
-Local storage is implemented simply as two dynamic arrays, one for write/read messages and the other for \textbf{store}/\textbf{take} messages. For atomic updates, the \textbf{write}/\textbf{read} array uses a readers/writer lock to allow multiple \textbf{read} operations to access the array in parallel, but locks the array for \textbf{write} operations. The \textbf{store}/\textbf{take} array does not permit concurrent operations, since both \textbf{store} and \textbf{take} modify the store. The two arrays may be accessed and modified independently.
+\section{MELON API}
+
+The MELON API as provided to the application is very simple. It only provides the six MELON operations, plus the ability to manually specify remote hosts. The API implementation does very little except interact with either local or remote storage. Both local and remote storage offer the same API, so they can be accessed uniformly.
+
+The prototype library tracks the local storage, remote servers, and read messages. \textbf{write} and \textbf{store} operate on the local storage only. \textbf{read} and \textbf{take} make no distinction between local and remote storage but simply iterate through the list of stores and invoke operations on them until the operation is satisfied. Each operation accesses the stores in a random order to spread the load and also provide a variety of sources.
+
+\section{Storage API}
+
+The storage API is an interface between the MELON API and either local or remote storage. In practice, however, the MELON API calls methods on the local storage directly. The API offers exactly the same six operations as MELON.
+
+Remote storage is accessed through the remote storage client which implements the same API as local storage, except without \textbf{write}/\textbf{store} since those are only performed locally. Each remote host is represented with its own remote storage client. Internally, the remote storage clients manage connections with the remote storage servers.
+
+\section{Local Message Store}
+
+While applications view the message store as a single entity, it is actually the federation of local message stores hosted by each node running MELON. Each message in the network is by default stored on exactly one node, which is the node on which the application is running which performed the \textbf{store} or \textbf{write} operation. In other words, storing a message is a local operation. This allows MELON to provide atomicity for message removal with \textbf{take} and to ensure per-host FIFO ordering when returning matched messages.
+
+Local storage is implemented simply as two dynamic arrays, one for \textbf{write}/\textbf{read} messages and the other for \textbf{store}/\textbf{take} messages. For atomic updates, the \textbf{write}/\textbf{read} array uses a readers/writer lock to allow multiple \textbf{read} operations to access the array in parallel, but locks the array for \textbf{write} operations. The \textbf{store}/\textbf{take} array does not permit concurrent operations, since both \textbf{store} and \textbf{take} modify the store. The two arrays may be accessed and modified independently.
+
+Implementation of \textbf{store}/\textbf{take} is simple: exclusive access is obtained for the appropriate array and the message is appended  to the end.
+
+For \textbf{take}, the lock is obtained for the \textbf{store}/\textbf{take} array and the message store starts at the oldest message and linearly scans until a matching message is found. When a matching message is found, the message is removed from the array and the elements shift appropriately to fill the gap.
+
+When performing a \textbf{read}, a readers lock for the \textbf{write}/\textbf{read} array is obtained. The message store starts at the oldest message and linearly searches the array for a matching message. If a message is matched, it must also be checked to not exist in the provided read message set (see Section \ref{sec:readmessages} below). If it is in the read message set, the search continues. Otherwise, the matching unread message is returned.
+
+In the architecture described here, the local message store is unaware of the location of the requesting or storing client, although it is assumed \textbf{store}/\textbf{write} operations are local. The storage server provides an API for remote applications to connect to and query the local storage.
+
+\section{Storage Server}
+
+Each local storage is accompanied by a storage server which allows remote hosts to connect and query the local storage. The storage server handles incoming connections, converts queries into calls to the local storage, and converts messages from local storage into responses back to the remote hosts. Each storage server can handle multiple concurrent requests.
 
 \section{Networking}
 
-Network communication is handled using ZeroMQ\cite{hintjens2013zeromq}, a high performance high level networking library. For the prototype, the network communication was intentionally kept simple. For example, a \textbf{read} request queries remote hosts in a random order and stops when a matching result is returned. For bulk operations, the prototype implementation also queries remote hosts in random order, but continues fetching results until all hosts have either returned a response or a timeout is reached.
+Network communication is handled using ZeroMQ\cite{hintjens2013zeromq}, a high performance, high level networking library. For the prototype, the network communication was intentionally kept simple. For example, a \textbf{read} request queries remote hosts in a random order and stops when a matching result is returned. For bulk operations, the prototype implementation also queries remote hosts in random order, but continues fetching results until all hosts have either returned a response or a timeout is reached.
 
 While it is possible to improve upon this approach using multicast, it would greatly complicate the implementation by requiring the client to handle multiple asynchronous responses, choose between them, request the actual matching message, and then handle failure scenarios if the matching message cannot be returned. Our approach was to trade off potential performance gains for simplicity.
 

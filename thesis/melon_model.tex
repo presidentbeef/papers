@@ -1,6 +1,8 @@
 \chapter{MELON Coordination Model}\label{chapter:model}
 
-\section{Overview}
+MELON\footnote{Message Exchange Language Over the Network} is a practical approach for distributed communication in MANET applications that provides persistent messages, reliable FIFO-ordered multicast, efficient bulk retrieval, and simple message streaming. MELON is intended to be a general purpose MANET communication paradigm, as opposed to focusing on a specific use case such as context-aware applications, pervasive computing, or sensor networks. 
+
+\section{Design Overview}
 
 The design of MELON is centered around a distributed shared message store. Each device in the network may host any number of applications which access and contribute to the shared message store. Each application hosts a local message store which may be accessed by any other local or remote application. Applications request messages (which may be stored locally or remotely) using message templates.
 
@@ -21,8 +23,6 @@ MELON also includes features uncommon to shared message stores to further simpli
 Secondly, MELON provides operations to only read messages which were not previously read by the same process. This enables an application to read all matching messages currently in the message store, then read only newly-added messages in subsequent operations. It also prevents an application from reading the same message twice.
 
 Lastly, MELON differentiates between messages which are meant to persist and be read by many receivers versus messages intended to be removed from the message store. For example, messages in a news feed would have many readers, but the messages themselves should not be removed. On the other hand, a job queue expects each job to be removed by exactly one worker. MELON provides operations to support both of these scenarios.
-
-\section{Message Store Model}
 
 \section{MELON Operations Overview}
 
@@ -113,3 +113,12 @@ When there are no matching messages and the value of \textit{block} is \textit{t
 \textbf{read\_all} performs a bulk read on the given message template and returns an array of matched messages. \textbf{read\_all} only returns messages which have not been previously returned in the same process by a read or \textbf{read\_all}. A \textbf{read\_all} operation will only return messages written by a \textbf{write} operation.
 
 When there are no matching messages and the value of \textit{block} is true or unspecified, the operation will block until at least one matching message is available and return an array of available messages. If \textit{block} is false \textbf{read\_all} will return an empty array.
+
+\section{Message Store Model}
+
+MELON's operates through a semi-persistent shared message store. The message store must match message templates to actual messages, provide concurrent access for multiple clients, manage returning messages in per-host FIFO order, implement basic access control as required by MELON operations, and of course be reasonably fast.
+
+MELON's message store is only \textit{semi}-persistent because it does not attempt to reliably retain all stored messages, and because the MELON paradigm explicitly acknowledges space limitations on mobile devices and will perform garbage collection of messages if necessary to store newer messages. Given the turbulent nature of MANETs, it is not practical for the message store to reliably retain all messages. Nodes will unexpectedly disconnect from the network, taking with them any hosted messages. If some global data structure were used for the message store, nodes moving from one network to another would need to explicitly disconnect from one shared message store, then explicitly join the next. This is not a practical constraint with the fluid and unpredictable nature of MANETs.
+
+From the perspective of an application, the message store is a single entity and it is not necessary or possible for an application to determine where a message physically resides. But in reality the message store is distributed across hosts, with each host being responsible for the messages stored by applications running locally on that host. MELON's message store is designed so each host may operate independently and without coordination between hosts. The only necessary communication originates from an application requesting a message to each remote host. Some coordination may be added for more advanced features (in particular, message replication in Section \ref{sec:replication}), but is not necessary to support MELON's operations.
+
