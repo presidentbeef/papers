@@ -123,7 +123,7 @@ end
 
 Workers retrieve jobs using \textbf{take} and invoke the \texttt{execute} method on them. If no jobs are available, the worker will block. Since MELON's \textbf{take} operation is atomic, there is no danger of a job being run by more than a single worker. If there is only a single job producer, the jobs will be executed in first-in, first-out order as enforced by MELON semantics.
 
-\section{Experiment Coordinator}
+\section{Experiment Coordinator}\label{casestudy:coordinator}
 
 \begin{figure}
 \centering

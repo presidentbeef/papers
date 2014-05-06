@@ -25,13 +25,13 @@ The storage API is an interface between the MELON API and either local or remote
 
 Remote storage is accessed through the remote storage client which implements the same API as local storage, except without \textbf{write}/\textbf{store} since those are only performed locally. Each remote host is represented with its own remote storage client. Internally, the remote storage clients manage connections with the remote storage servers.
 
-\section{Local Message Store}
+\section{Local Message Store}\label{impl:localstore}
 
 While applications view the message store as a single entity, it is actually the federation of local message stores hosted by each node running MELON. Each message in the network is by default stored on exactly one node, which is the node on which the application is running which performed the \textbf{store} or \textbf{write} operation. In other words, storing a message is a local operation. This allows MELON to provide atomicity for message removal with \textbf{take} and to ensure per-host FIFO ordering when returning matched messages.
 
 Local storage is implemented simply as two dynamic arrays, one for \textbf{write}/\textbf{read} messages and the other for \textbf{store}/\textbf{take} messages. For atomic updates, the \textbf{write}/\textbf{read} array uses a readers/writer lock to allow multiple \textbf{read} operations to access the array in parallel, but locks the array for \textbf{write} operations. The \textbf{store}/\textbf{take} array does not permit concurrent operations, since both \textbf{store} and \textbf{take} modify the store. The two arrays may be accessed and modified independently.
 
-Implementation of \textbf{store}/\textbf{take} is simple: exclusive access is obtained for the appropriate array and the message is appended  to the end.
+Implementation of \textbf{store}/\textbf{write} is simple: exclusive access is obtained for the appropriate array and the message is appended  to the end. 
 
 For \textbf{take}, the lock is obtained for the \textbf{store}/\textbf{take} array and the message store starts at the oldest message and linearly scans until a matching message is found. When a matching message is found, the message is removed from the array and the elements shift appropriately to fill the gap.
 

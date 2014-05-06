@@ -53,7 +53,7 @@ Due to the limited resources of most devices in a mobile network, storage space 
 
 \subsection{Operation Details}
 
-Processes in MELON communicate by storing messages to a distributed shared message store and retrieving the messages based on templates. In this paper, we assume messages consist of an ordered list of typed values and optionally an addressee. However, nothing in the paradigm itself limits how messages might be constructed (e.g., they could be an unordered tuple with named values instead).
+Processes in MELON communicate by storing messages to a distributed shared message store and retrieving the messages based on templates. FOr simplicity, we assume messages consist of an ordered list of typed values and optionally an addressee. However, nothing in the paradigm itself limits how messages might be constructed (e.g., they could be an unordered tuple with named values instead).
 
 A message template is similar to a message, except it may contain both values and types. For example, a message containing \texttt{[1, "hello"]} could be matched by a template containing \texttt{[1, String]} or \texttt{[Integer, "hello"]} or \texttt{[Integer, String]}. A type will also match any subtypes.
 
@@ -122,3 +122,12 @@ MELON's message store is only \textit{semi}-persistent because it does not attem
 
 From the perspective of an application, the message store is a single entity and it is not necessary or possible for an application to determine where a message physically resides. But in reality the message store is distributed across hosts, with each host being responsible for the messages stored by applications running locally on that host. MELON's message store is designed so each host may operate independently and without coordination between hosts. The only necessary communication originates from an application requesting a message to each remote host. Some coordination may be added for more advanced features (in particular, message replication in Section \ref{sec:replication}), but is not necessary to support MELON's operations.
 
+\section{Message Ordering}
+
+The order in which messages are received in a communication paradigm can have a large effect on an application. In tuple spaces, for example, messages may be retrieved in any order and when multiple tuples match a template the choice of which tuple to return is explicitly nondeterministic. This puts a burden on the application to maintain desired ordering. In other paradigms, ordering is essentially undefined. 
+
+It would be ideal to have messages delivered in the order in which they are sent, but managing this is very difficult in a MANET where the network and hosts are unreliable and communication is expensive. Providing total-ordering or causal-ordering is still difficult for the same reasons: a message is not guaranteed to ever be delivered. It may be lost in transit and the sender may leave or fail before retransmission.  For pull-based paradigms such as tuple spaces and MELON, ordering is difficult to define since different messages may be requested by different receivers.
+
+However, it is still very useful to have some ordering for message delivery. Video streaming from a single host needs to be displayed in order on the receivers. Order may be enforced by the receiver via a buffer, but if messages are too far out of order the buffering time would become unacceptable. In general, we noted there are cases in which messages from a single source should be ordered, but have no need to be ordered relative to messages from other sources. One example where this was convenient was logging output from experiments as described in Section \ref{casestudy:coordinator}.
+
+To provide some useful ordering with minimal overhead, messages retrieved from MELON's message store are returned in per-process FIFO ordering as described in \cite{distbook}. The message store is responsible for enforcing this ordering. A simple approach to implementing this functionality is described in \ref{impl:localstore}.
