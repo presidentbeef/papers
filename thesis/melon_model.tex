@@ -4,23 +4,35 @@ MELON\footnote{Message Exchange Language Over the Network} is a practical approa
 
 \section{Design Overview}
 
-The design of MELON is centered around a distributed shared message store. Each device in the network may host any number of applications which access and contribute to the shared message store. Each application hosts a local message store which may be accessed by any other local or remote application. Applications request messages (which may be stored locally or remotely) using message templates.
+MELON is a pull-based communication model in which applications asynchronously exchange messages through a shared message store. The messages are either stored as read-only or take-only. Read-only messages can only be copied from the message store, not removed, while take-only messages may only be retrieved by removal from the message store. Messages are retrieved by matching them against templates. MELON also provides bulk operations to read or take all matching messages at once.
 
-By communicating through a shared message store, the concept of a connection between hosts is eliminated and thus disconnections are no longer an issue at the application layer. A host suddenly leaving the network does not disrupt an application and applications do not need to handle a communication operation returning an error or failing due to intermittent network connectivity or physical wireless interference. The application is effectively insulated from these issues by the nature of the paradigm and the semantics of the operations.
+\subsection{Disconnection Handling}
 
-Since messages are exchanged through a shared message store, messages are sent and received asynchronously with no need for a persistent connection. This provides temporal decoupling between hosts, since messages can still be delivered even after prolonged disconnections.
+The main difficulty of communication in MANETs is the frequent disconnections caused by the unreliable wireless channel and the very dynamic network topology where nodes may join, leave, and move at any time. As noted in Section \ref{sec:suitabilitydisconnections}, message persistence is a useful approach to hiding disconnections from the application. Instead of requiring a reliable connection to the receiver, messages may be delivered whenever the receiver is available. Disconnections that occur between the sending and receiving of a message are hidden from the application.
+
+In order to provide message persistence, the design of MELON is centered around a distributed shared message store. By communicating through a shared message store, the concept of a connection between hosts is eliminated and thus disconnections are no longer an issue at the application layer. A host suddenly leaving the network does not disrupt an application and applications do not need to handle a communication operation returning an error or failing due to intermittent network connectivity or physical wireless interference. The application is effectively insulated from these issues by the nature of the paradigm and the semantics of the operations.
+
+Besides hiding intermittent network issues, message persistence also provides temporal decoupling between hosts, since messages can still be delivered even after prolonged disconnections. MELON is a pull-based paradigm in which the receivers request messages from the message store and senders merely deposit the messages.
 
 Due to the dynamic network topology of MANETs, maintaining any type of logical or overlay network structure becomes challenging, so MELON does not rely on a particular network structure. Discovery of available messages is performed dynamically for each operation. While this does increase the amount of communication required for each operation, it removes the need for global state and allows the network to change at any time.
 
-MELON also provides spatial decoupling (where the sender and receiver need not be aware of each other) by matching messages based on content, rather than by a host address or location. The messages themselves may physically reside on any host in the network. The sender of a message is not aware of the receivers' identities nor even how many receivers might read a message. This frees applications from tracking remote addresses or contacting a directory service to find remote resources.
+\subsection{Addressing and Discovery}
+
+Since MANETs are self-organized and infrastructureless, it is not feasible to rely on centralized sources of information such as resource directories. Additionally, it is advantageous to avoid tying data to physical locations, but rather to address resources by their content or other labels instead of IP or MAC addresses. This allows resources to migrate and for multiple hosts to service a request instead of being associated with just one.
+
+MELON provides spatial decoupling (where the sender and receiver need not be aware of each other) by matching messages based on content, rather than by a host address or location. The messages themselves may physically reside on any host in the network. The sender of a message is not aware of the receivers' identities nor even how many receivers might read a message. This frees applications from tracking remote addresses or contacting a directory service to find remote resources.
+
+\subsection{Flexible Communication}
 
 The shared wireless communication medium in MANETs is well-suited to group or multicast communications. MELON supports multicast communication by allowing any number of receivers to read the same message. MELON also provides bulk receives, which allow applications to efficiently receive multiple messages from multiple hosts in a single operation.
 
 Applications often require point-to-point or unicast communication as well. While unicast communication can be accomplished through by storing regular messages in MELON, this communication can easily be disrupted by a process removing a message intended for a different receiver. Additionally, it is possible to eavesdrop on messages unnoticed by reading a message and not removing it. For applications such as instant messaging, it is important to have private unicast communication. In MELON, messages may be directed to a specific receiver when stored to ensure the messages are only taken by the intended recipient.
 
+\subsection{MELON Features}
+
 MELON also includes features uncommon to shared message stores to further simplify application development in MANETs. First, messages are returned in first-in first-out order per host. When a host receives a message request, it returns the oldest matching message in its local storage. In applications where a single host generates the majority of the messages, this eliminates the need to order messages on the receiver side.
 
-Secondly, MELON provides operations to only read messages which were not previously read by the same process. This enables an application to read all matching messages currently in the message store, then read only newly-added messages in subsequent operations. It also prevents an application from reading the same message twice.
+Secondly, MELON provides operations to only read messages which were not previously read by the same process. This enables an application to read all matching messages currently in the message store, then read only newly-added messages in subsequent operations. It also prevents an application from reading the same message twice. This approach avoids the ``multiple read" problem demonstrated by tuple spaces and discussed in Section \ref{sec:multipleread}.
 
 Lastly, MELON differentiates between messages which are meant to persist and be read by many receivers versus messages intended to be removed from the message store. For example, messages in a news feed would have many readers, but the messages themselves should not be removed. On the other hand, a job queue expects each job to be removed by exactly one worker. MELON provides operations to support both of these scenarios.
 

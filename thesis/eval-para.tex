@@ -2,7 +2,7 @@
 
 \subsection{Suitability for MANETs}
 
-\subsubsection{Disconnection Handling}
+\subsubsection{Disconnection Handling}\label{sec:suitabilitydisconnections}
 
 In the unreliable MANET environment, disconnections frequently occur during the exchange of messages. Since disconnections can be prolonged, the networking layers will assume the connection is entirely lost and cease retrying. By having a message persist in some way, a paradigm can overcome these disconnections and deliver the message at a later time.
 
@@ -34,7 +34,7 @@ Communication in publish/subscribe is public and multicast by nature. Any subscr
 
 In tuple spaces, tuples are public and available to any recipient. Not only can any node read any communications without detection, any node can also disrupt communications by removing tuples intended for a specific recipient.
 
-\subsubsection{Multiple Read Problem}
+\subsubsection{Multiple Read Problem}\label{sec:multipleread}
 
 The multiple read problem \cite{mrdp} is specific to tuple spaces: in a situation where the tuple space contains many tuples of interest, how do multiple readers read \textit{all} relevant tuples? In tuple spaces, the non-destructive \textbf{rd} operation returns a copy of a matching tuple, but it may return the same tuple any number of times since the tuple is chosen nondeterministically between all matching tuples. In many tuple space implementations, this occurs because the tuples are stored sequentially and so the first matching tuple is always the same\cite{de2012new}.
 
