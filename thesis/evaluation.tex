@@ -90,7 +90,7 @@ Publish/subscribe dominates in these experiments since it is the only push-based
 Despite having higher average latency than the other paradigms, MELON demonstrates good throughput in both the static and mobile scenarios. However, throughput for all paradigms drops off dramatically as more receivers are added. Also, all paradigms performed better in the mobile scenario than in the static scenario. This is likely due to two factors: devices were not forced to be more than one hop apart, and the large number of devices allows distinct routes between devices and decreases wireless broadcast collisions.
 
 
-\subsection{Whiteboard Performance}
+\subsection{Whiteboard Performance}\label{sec:whiteboardperformance}
 
 For each implementation, we measured the number of messages lost, the number of messages received out of order, and the message latency. For out-of-order messages, we divided it into two metrics: host out-of-order and global out-of-order. Host out-of-order messages are messages from a single host which are not received in the order sent. Global out-of-order messages are those received before their preceding message. For example, if node A receives a message \textit{m}$_{1}$ from node B, then sends \textit{m}$_{2}$. If node C receives \textit{m}$_{2}$ prior to \textit{m}$_{1}$, \textit{m}$_{2}$ will be considered out of order.
 

@@ -175,7 +175,7 @@ In our usage of the experiment coordination framework, the output from the appli
 
 \section{Shared Whiteboard}\label{sec:wb}
 
-This section presents the implementation of a shared whiteboard not only using MELON, but also publish/subscribe, RPC, and tuple spaces in order to compare their features and performance.
+This section presents the implementation of a shared whiteboard not only using MELON, but also publish/subscribe, RPC, and tuple spaces in order to compare their features and performance. The performance results are presented in Section \ref{sec:whiteboardperformance}.
 
 A shared whiteboard is a digital document which may be edited and viewed by multiple users concurrently and is commonly proposed as an example of an application well-suited to MANETs\cite{wb5}\cite{wb6}. Shared whiteboards are distributed, real-time, and interactive, which presents some interesting characteristics. Since many participants may be updating the whiteboard, ordering of changes is very important to maintain a consistent document. It is also important that changes be propagated quickly so that each user is working with the latest document.
 
@@ -284,11 +284,3 @@ end
 The MELON whiteboard in Listing \ref{code:mwb} writes out each figure in a tuple containing just the new figure. It uses the \textbf{write} operation since every remote node needs to be able to read the figures. To retrieve remote figures, MELON uses \textbf{read\_all} to nondestructively read all messages containing a \texttt{Figure}. Like tuple spaces, the \texttt{add\_remote\_figures} method should be called in a separate thread to provide asynchronous updates. Unlike tuple spaces, MELON's \textbf{read\_all} operation only retrieves unread messages, eliminating the ``multiple multiple read" problem.
 
 MELON directly provides three features which are helpful to the whiteboard application: persistent messages, reading only unread messages, and returning messages in a per-host ordering. Message persistence is crucial in MANET applications, where communication with remote nodes is often disrupted and delayed. For a shared whiteboard, every message must be delivered to keep the document synchronized between users. By managing read versus unread messages, MELON easily allows the whiteboard to efficiently fetch only newly-added figures. Finally, MELON guarantees the updates from each host will be retrieved in the order that host initiated them. While this does not provide a global ordering, it does ensure updates from a single host will be in order.
-
-\section{Summary}
-
-MELON provides simple, yet powerful operations for communicating and coordinating between hosts and processes.
-
-In none of the code examples using MELON was it necessary 
-
-(ordering of messages, thread safety...?)

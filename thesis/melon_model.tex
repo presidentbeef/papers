@@ -41,7 +41,7 @@ Lastly, MELON differentiates between messages which are meant to persist and be 
 \begin{table}
 \centering
 \caption{Operations Summary}
-\begin{tabular}{|c|c|c|c|} \hline
+\begin{tabular}{|p{3cm}|c|c|c|} \hline
 & Add single message & Retrieve single message & Retrieve many messages \\ \hline
 Nondestructive retrieval & \textbf{write} & \textbf{read} & \textbf{read\_all} \\ \hline
 Destructive retrieval & \textbf{store} & \textbf{take} & \textbf{take\_all} \\ \hline
@@ -140,6 +140,6 @@ The order in which messages are received in a communication paradigm can have a 
 
 It would be ideal to have messages delivered in the order in which they are sent, but managing this is very difficult in a MANET where the network and hosts are unreliable and communication is expensive. Providing total-ordering or causal-ordering is still difficult for the same reasons: a message is not guaranteed to ever be delivered. It may be lost in transit and the sender may leave or fail before retransmission.  For pull-based paradigms such as tuple spaces and MELON, ordering is difficult to define since different messages may be requested by different receivers.
 
-However, it is still very useful to have some ordering for message delivery. Video streaming from a single host needs to be displayed in order on the receivers. Order may be enforced by the receiver via a buffer, but if messages are too far out of order the buffering time would become unacceptable. In general, we noted there are cases in which messages from a single source should be ordered, but have no need to be ordered relative to messages from other sources. One example where this was convenient was logging output from experiments as described in Section \ref{casestudy:coordinator}.
+However, it is still very useful to have some ordering for message delivery. Video streaming from a single host needs to be displayed in order on the receivers. Order may be enforced by the receiver via a buffer, but if messages are too far out of order the buffering time would become unacceptable. In general, we noted there are cases in which messages from a single source should be ordered, but have no need to be ordered relative to messages from other sources.
 
-To provide some useful ordering with minimal overhead, messages retrieved from MELON's message store are returned in per-process FIFO ordering as described in \cite{distbook}. The message store is responsible for enforcing this ordering. A simple approach to implementing this functionality is described in \ref{impl:localstore}.
+To provide some useful ordering with minimal overhead, messages retrieved from MELON's message store are returned in per-process FIFO ordering as described in \cite{distbook}. Messages sent by the same host are received in the order sent. This does not provide a global ordering, but still relieves applications of some responsibility. One example where this was convenient was logging output from experiments as described in Section \ref{casestudy:coordinator}. The coordinator reads messages output from all hosts and records them in file per host. The messages are written in order automatically for each host without the application needing any logic to manage the ordering. The message store is responsible for enforcing this ordering and a simple approach to implementing this functionality is described in \ref{impl:localstore}.

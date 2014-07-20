@@ -1,12 +1,12 @@
 \section{Project-Based Comparison}\label{sec:proj_eval}
 
-The current projects for developing software in MANETs fall into three broad categories: runtimes, languages, and middleware, which offer increasing levels of abstraction for the developer. They can also be combined: a middleware solution can be written in a language which uses one of the basic runtimes for mobile devices. In many cases projects also provide additional resources for software development such as debuggers and emulators for testing code. Table\ref{table:projs} summarizes the projects discussed in this section with respect to the requirements in Section \ref{sec:manetrecs}. A broader overview focusing only on middleware for MANETs can be found in~\cite{middlewaresurvey}.
+The current projects for developing software in MANETs fall into three broad categories: runtimes, languages, and middleware, which offer increasing levels of abstraction for the developer. They can also be combined: a middleware solution can be written in a language which uses one of the basic runtimes for mobile devices. In many cases projects also provide additional resources for software development such as debuggers and emulators for testing code. Table\ref{table:projs} summarizes the representative projects discussed in this section with respect to the requirements in Section \ref{sec:manetrecs}. Broader overviews focusing only on middleware for MANETs can be found in~\cite{middlewaresurvey} and \cite{newmiddlewaresurvey}.
 
 \begin{table*}
 \centering
 \caption{Projects Summary}
-\begin{tabular}{|c|c|c|c|c|c|} \hline
-Project & Category & Disconnection Handling & Addressing and Discovery & Communication \\ \hline
+\begin{tabular}{|c|p{2cm}|p{3cm}|p{4cm}|p{3.5cm}|} \hline
+\textbf{Project} & \textbf{Category} & \textbf{Disconnection Handling} & \textbf{Addressing and Discovery} & \textbf{Communication} \\ \hline
 LIME & Middleware & Tuple removal & Merged tuple spaces & Tuple space \\ \hline
 MESHMdl & Middleware & Tuple removal & Tuple exchange & Tuple space \\ \hline
 TOTA & Middleware & Connectionless & Tuple propagation & Tuple space \\ \hline
@@ -32,7 +32,7 @@ Two common runtimes for mobile devices are Java ME~\cite{javame} and the .NET Co
 
 \subsubsection{Languages}
 
-A language in this paper refers to any language, language extension, or library which provides new language constructs for programming in a MANET. Languages often include their own runtime or are built on top of existing runtimes. Libraries and language extensions are likely to be easier for developers to use if they are already familiar with the base language.
+A language in this dissertation refers to any language, language extension, or library which provides new language constructs for programming in a MANET. Languages often include their own runtime or are built on top of existing runtimes. Libraries and language extensions are likely to be easier for developers to use if they are already familiar with the base language.
 
 M2MI~\cite{m2mi}, AmbientTalk~\cite{ambienttalk}, and SpatialViews~\cite{nisv} are three language-based projects intended for MANETs. Many-to-Many Invocation (M2MI) avoids costly ad hoc routing and discovery by broadcasting messages. Messages are addressed by object type, so if a device hosts an object of the addressed type, it will pass the message to that object.
 

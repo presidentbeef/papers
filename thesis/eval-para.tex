@@ -204,7 +204,7 @@ Since tuple spaces only support pull operations, the situation is inverted. Rece
 
 \begin{figure}
 \centering
-\includegraphics[width = 0.70\textwidth, clip, trim = 0px 0px 0px 0px]{figures/mobile-group-delivery.pdf}
+\includegraphics[width = \textwidth, clip, trim = 0px 0px 0px 0px]{figures/mobile-group-delivery2.pdf}
 \caption{Message Delivery - Mobile}
 \label{fig:mgdel}
 \end{figure}
@@ -313,7 +313,7 @@ Furthermore, we tested the whiteboard application under the two different routin
 \end{figure}	
 
 \begin{figure}
-\includegraphics[width = .9\textwidth, clip, trim = 6px 0px 2px 0px]{figures/wb-aodv-delivery.pdf}
+\includegraphics[width = .9\textwidth, clip, trim = 6px 0px 2px 0px]{figures/wb-aodv-delivery2.pdf}
 \caption{Whiteboard Message Delivery (AODV)}
 \label{fig:wbdeliveryaodv}
 \end{figure}
@@ -324,7 +324,7 @@ Unlike the previous results, these represent one-way communication from the whit
 
 Figures~\ref{fig:wbdeliverydsr} and ~\ref{fig:wbdeliveryaodv} show the percentage of whiteboard messages delivered for DSR and AODV, respectively. As before, the results are nearly 100\% for all paradigms and both protocols in the single hop network. AODV performs poorly on the multi-hop scenario, while DSR achieves nearly 100\% delivery for all paradigms. On the other hand, DSR performs much worse in the mobile scenario, with the delivery ratio for RPC only reaching 25\%.
 
-The reliability of tuple spaces is considerably better in these experiments than in the round trip scenario, with 100\% delivery in all but the AODV multi-hop scenario. The difference between these results and Section \ref{sec:group_reliability} is the lack of a return message. Each receiver is responsible for requesting the whiteboard updates, so the blocking request will be retried until the tuples are received. The only exception is the multi-hop scenario with AODV, in which all three paradigms perform much worse. Since all three paradigms are affected equally, these results must be directly due to the behavior of AODV in this scenario. Investigation of this phenomenon is outside the scope of this paper.
+The reliability of tuple spaces is considerably better in these experiments than in the round trip scenario, with 100\% delivery in all but the AODV multi-hop scenario. The difference between these results and Section \ref{sec:group_reliability} is the lack of a return message. Each receiver is responsible for requesting the whiteboard updates, so the blocking request will be retried until the tuples are received. The only exception is the multi-hop scenario with AODV, in which all three paradigms perform much worse. Since all three paradigms are affected equally, these results must be directly due to the behavior of AODV in this scenario. Investigation of this phenomenon is outside the scope of this dissertation.
 
 While the choice of routing protocol can have a significant effect on the paradigm performance, it appears to affect each paradigm in the same manner. In other words, neither routing protocol improves the performance of one paradigm while causing a different paradigm to perform worse.
 
@@ -350,28 +350,28 @@ Figure~\ref{fig:wbdelaydsr} shows the results when using DSR and Figure~\ref{fig
 
 With DSR, tuple spaces report a nearly 100\% delivery ratio in every scenario, yet the delay times are $<$400\textit{ms} in the static scenarios. In contrast, AODV causes long delays for tuple spaces in both the multi-hop and mobile scenarios. Since tuple spaces will repeatedly attempt to deliver messages, retries are expected to contribute to the majority of the delays. This is supported by the long delay times experienced by tuple spaces with AODV in the multi-hop scenario. However, in the mobile scenario tuple spaces achieve 100\% delivery with AODV and DSR, but the median delay with DSR is less than half as with AODV.
 
-From the mobile reliability results, we can infer that DSR does not maintain viable routes, because the results of publish/subscribe and RPC are poor. However, the delay results suggest DSR is faster than AODV at finding new routes when they become available.
+From the mobile reliability results, we can infer that DSR does not maintain viable routes, because the results of publish/subscribe and RPC are poor. However, the delay results suggest DSR is faster than AODV at finding new routes as they become available.
 
 
 \subsubsection{Routing Overhead}\label{sec:routing}
 
 \begin{figure}
 \centering
-\includegraphics[scale = 1]{figures/single-hop-routing.pdf}
+\includegraphics[width = 0.9\textwidth]{figures/single-hop-routing.pdf}
 \caption{Whiteboard Routing Overhead - Single Hop}
 \label{fig:wbrouting-sh}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[scale = 1]{figures/multi-hop-routing.pdf}
+\includegraphics[width = 0.9\textwidth]{figures/multi-hop-routing.pdf}
 \caption{Whiteboard Routing Overhead - Multihop}
 \label{fig:wbrouting-mh}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[scale = 1]{figures/mobile-routing.pdf}
+\includegraphics[width = 0.9\textwidth]{figures/mobile-routing.pdf}
 \caption{Whiteboard Routing Overhead - Mobile}
 \label{fig:wbrouting-m}
 \end{figure}
