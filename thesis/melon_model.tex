@@ -41,8 +41,14 @@ Lastly, MELON differentiates between messages which are meant to persist and be 
 \begin{table}
 \centering
 \caption{Operations Summary}
-\begin{tabular}{|p{3cm}|c|c|c|} \hline
-& Add single message & Retrieve single message & Retrieve many messages \\ \hline
+\begin{tabular}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|} \hline
+& Add
+
+single message & Retrieve
+
+single message & Retrieve
+
+many messages \\ \hline
 Nondestructive retrieval & \textbf{write} & \textbf{read} & \textbf{read\_all} \\ \hline
 Destructive retrieval & \textbf{store} & \textbf{take} & \textbf{take\_all} \\ \hline
 \end{tabular}
@@ -106,7 +112,7 @@ When a matching unread message is not available, behavior of \textbf{read} depen
 
 A message may be \textbf{read} by any number of processes, but each process may only read each messages at most once.
 
-\begin{table}
+\begin{table}\footnotesize
 \centering
 \caption{Read from multiple processes}
 \begin{tabular}{|c|c|c|} \hline
