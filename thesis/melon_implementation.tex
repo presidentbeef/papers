@@ -85,6 +85,32 @@ Consecutive messages (from any starting value) are the best-case scenario for sp
 
 Determining if a message [\textit{P}, \textit{M}] is in the set is accomplished by first computing \textit{Q}. If there is no key at index $Q/w$, the message has not been read. Otherwise, retrieve the bit field \textit{b} at index $M / w$. If $b \wedge 2^{M \bmod w} \neq 0$ then the message has been read, otherwise the message is unread.
 
+\subsection{Sparse Bit Set Performance}
+
+For matching read-only messages, the read message data structure will need to be fast and small. In this section we are using a sparse bit set implementation developed for MELON\footnote{Source available at https://github.com/presidentbeef/dumb-numb-set} based on Ruby hashes and using 64-bit integers. Testing is performed using Ruby 2.1.2.
+
+\begin{figure}
+\centering
+\includegraphics[scale = 0.75]{figures/bitset-speed.pdf}
+\caption{Sparse Bit Set Operation Speed}
+\label{fig:bitsetspeed}
+\end{figure}
+
+In Figure \ref{fig:bitsetspeed} we compare the speed of the sparse bit set implementation to the standard Ruby hash table implementation. The times reported for each operation are per 1 million records. The sparse bit set outperforms the hash table for each experiment except adding random numbers to the set. For the sparse bit set, adding an integer involves creating and storing two values: the index and the bit field. For the random values, this occurs more frequently. For sequential integers, the cost of creating the index and bit field is amortized over several stores (essentially the number of bits in the bit field).
+
+\begin{figure}
+\centering
+\includegraphics[scale = 0.80]{figures/bitset-size.pdf}
+\caption{Sparse Bit Set Size}
+\label{fig:bitsetsize}
+\end{figure}
+
+Figure \ref{fig:bitsetsize} shows the increase in the size of the bit set as the number of read messages increases. This is the actual serialized size of the data structure as it is sent over the network. After about 1,000 messages, the size grows linearly and averages 1.6 bits per message. At 1 million records, the data structure is about 192 KB. However, this is about 96\% smaller than the standard Ruby hash table.
+
+Without pruning, the read message data structure will grow unbounded. There are some potential solutions to this. One solution would be to track read messages per host. When requesting a read-only message from a given host, only the read messages from that host are sent. Unfortunately, this ties applications to hosts and assumes messages will only be on the host which output them. This would prevent message replication as discussed in Section \ref{sec:replication}.
+
+Since read messages may be garbage collected, hosts may provide feedback about which messages have been garbage collected. These messages may then also be garbage collected from the read data structure, essentially pruning it. This could be returned as optional data when a request for read-only messages is made, thereby avoiding any extra communication.
+
 \section{Message Replication}\label{sec:replication}
 
 Distributing copies of messages to multiple hosts can increase message availability when a host is temporarily unavailable, under heavy load, or even in the face of network partitioning. Additionally, it can improve performance if messages can be fetched from a nearer host or from multiple hosts in parallel. While not a requirement of the MELON paradigm, message replication may be implemented as an additional feature of MELON without adding any new operations although it does add complexity.
