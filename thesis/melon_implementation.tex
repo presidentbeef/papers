@@ -1,6 +1,6 @@
 \chapter{MELON Implementation}\label{chapter:implementation}
 
-This chapter describes a prototype implementation of MELON we developed in order to validate our design and obtain empirical performance data.
+This chapter describes a prototype implementation of MELON we developed in order to validate our design and obtain empirical performance data.\footnote{Current source code for the prototype is available at \texttt{https://github.com/presidentbeef/melon}}
 
 \section{Architecture}
 
@@ -29,7 +29,7 @@ Remote storage is accessed through the remote storage client which implements th
 
 While applications view the message store as a single entity, it is actually the federation of local message stores hosted by each node running MELON. Each message in the network is by default stored on exactly one node, which is the node on which the application is running which performed the \textbf{store} or \textbf{write} operation. In other words, storing a message is a local operation. This allows MELON to provide atomicity for message removal with \textbf{take} and to ensure per-host FIFO ordering when returning matched messages.
 
-Local storage is implemented simply as two dynamic arrays, one for \textbf{write}/\textbf{read} messages and the other for \textbf{store}/\textbf{take} messages. For atomic updates, the \textbf{write}/\textbf{read} array uses a readers/writer lock to allow multiple \textbf{read} operations to access the array in parallel, but locks the array for \textbf{write} operations. The \textbf{store}/\textbf{take} array does not permit concurrent operations, since both \textbf{store} and \textbf{take} modify the store. The two arrays may be accessed and modified independently.
+Local storage is implemented simply as two dynamic arrays, one for \textbf{write}/\textbf{read} messages and the other for \textbf{store}/\textbf{take} messages. For atomic updates, the \textbf{write}/\textbf{read} array uses a readers/writer lock\footnote{Source code is available at \texttt{https://github.com/presidentbeef/rwlock}} to allow multiple \textbf{read} operations to access the array in parallel, but locks the array for \textbf{write} operations. The \textbf{store}/\textbf{take} array does not permit concurrent operations, since both \textbf{store} and \textbf{take} modify the store. The two arrays may be accessed and modified independently.
 
 Implementation of \textbf{store}/\textbf{write} is simple: exclusive access is obtained for the appropriate array and the message is appended  to the end. 
 
